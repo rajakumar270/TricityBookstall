@@ -1,15 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
-export default async function (context: any) {
+async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors({ origin: '*' });
+  
+  // Enable CORS for React frontend
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
   app.setGlobalPrefix('api');
-  await app.init();
 
-  const req = context.req;
-  const res = context.res;
-
-  // Serve API response
-  return res.json({ status: 'ok', domain: 'tricitybookstall-prabodhanam.appwrite.network' });
+  const port = process.env.PORT || 5001;
+  await app.listen(port);
+  console.log(`🚀 NestJS Backend running on http://localhost:${port}/api`);
 }
+
+bootstrap();
