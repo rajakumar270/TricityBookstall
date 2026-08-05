@@ -1,0 +1,30 @@
+{
+    "organizationId": "6a6e11d21d16bbc9f4f2",
+    "projectId": "himgarg",
+    "projectName": "myServer",
+    "endpoint": "https://nyc.cloud.appwrite.io/v1",
+    "functions": [
+        {
+            "$id": "himangarg",
+            "name": "tricitybookstall",
+            "runtime": "node-18.0",
+            "execute": [
+                "any"
+            ],
+            "events": [],
+            "scopes": [],
+            "schedule": "",
+            "timeout": 15,
+            "enabled": true,
+            "logging": true,
+            "entrypoint": "src/main.js",
+            "commands": "npm install",
+            "ignore": [
+                "node_modules",
+                ".npm"
+            ],
+            "deploymentRetention": 0,
+            "path": "functions/tricitybookstall"
+        }
+    ]
+}
