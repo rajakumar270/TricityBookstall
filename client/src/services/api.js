@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://tricitybookstall-prabodhanam.appwrite.network/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://6a72b55e00083cca15bb.nyc.appwrite.run';
 
 export const api = axios.create({
   baseURL: API_BASE,
