@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
-import { BooksService, Book } from './books.service';
+import { BooksService, Book, SalesLogEntry } from './books.service';
 
 @Controller('books')
 export class BooksController {
@@ -7,17 +7,44 @@ export class BooksController {
 
   @Get()
   getAllBooks(
+    @Query('mainCategory') mainCategory?: string,
     @Query('category') category?: string,
     @Query('search') search?: string,
     @Query('kidsOnly') kidsOnly?: string
   ): Book[] {
     const isKids = kidsOnly === 'true';
-    return this.booksService.findAll(category, search, isKids);
+    return this.booksService.findAll(mainCategory, category, search, isKids);
+  }
+
+  @Get('main-categories')
+  getMainCategories(): string[] {
+    return this.booksService.getMainCategories();
   }
 
   @Get('categories')
   getCategories(): string[] {
     return this.booksService.getCategories();
+  }
+
+  @Get('sales-logs')
+  getSalesLogs(): SalesLogEntry[] {
+    return this.booksService.getSalesLogs();
+  }
+
+  @Post('sales-entry')
+  recordSalesEntry(
+    @Body()
+    body: {
+      date: string;
+      bookId: string;
+      quantitySold: number;
+      sellingPriceOnDate: number;
+      recordedBy?: string;
+      location?: string;
+      notes?: string;
+    }
+  ): SalesLogEntry {
+    return this.booksService.recordSalesEntry(body);
   }
 
   @Get(':id')

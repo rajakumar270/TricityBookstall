@@ -1,190 +1,251 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import * as fs from 'fs';
+import * as path from 'path';
+import { seedBooksFromCSV } from './books.seed';
 
 export interface Book {
   id: string;
   title: string;
+  hinglishTitle?: string;
   author: string;
+  mainCategory: 'Acharya Prashant Foundation' | 'Other Author';
   category: 'Kids Wisdom' | 'Mind & Character' | 'Self Discovery' | 'Vedanta & Classics';
   isKidsSection: boolean;
   isFeatured: boolean;
   language: 'English' | 'Hindi' | 'Bilingual';
-  description: string;
+  description?: string;
   coverImage: string;
   badge?: string;
   readingAge?: string;
   pages?: number;
+  mrp: number;
+  buyingCost: number;
+  sellingPrice: number;
   availableStock: number;
+  externalLink?: string;
+  problemAddressedTag?: string; // Problem / Theme addressed tag
+}
+
+export interface SalesLogEntry {
+  id: string;
+  date: string; // YYYY-MM-DD
+  bookId: string;
+  bookTitle: string;
+  mainCategory: string;
+  quantitySold: number;
+  sellingPriceOnDate: number;
+  totalAmount: number;
+  recordedBy: string;
+  location?: string;
+  notes?: string;
+  createdAt: string;
 }
 
 @Injectable()
 export class BooksService {
-  private books: Book[] = [
-    {
-      id: 'b1',
-      title: 'Illustrated Bal Gita & Moral Tales',
-      author: 'Prabodhanam Wisdom Series',
-      category: 'Kids Wisdom',
-      isKidsSection: true,
-      isFeatured: true,
-      language: 'Bilingual',
-      description: 'Charming illustrated stories bringing timeless ethical principles, bravery, and character-building values to young children.',
-      coverImage: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80',
-      badge: "Kids Favorite",
-      readingAge: 'Ages 6 - 12',
-      pages: 120,
-      availableStock: 45,
-    },
-    {
-      id: 'b2',
-      title: 'Stories of Clarity & Character',
-      author: 'Prabodhanam Youth Edition',
-      category: 'Kids Wisdom',
-      isKidsSection: true,
-      isFeatured: true,
-      language: 'English',
-      description: 'Interactive short stories designed to instill concentration, kindness, respect for elders, and mental clarity in young minds.',
-      coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
-      badge: 'Bestseller for Kids',
-      readingAge: 'Ages 8 - 14',
-      pages: 96,
-      availableStock: 60,
-    },
-    {
-      id: 'b3',
-      title: 'The Science of Mind Control & Focus',
-      author: 'A.C. Bhaktivedanta Swami Prabhupada',
-      category: 'Mind & Character',
-      isKidsSection: false,
-      isFeatured: true,
-      language: 'English',
-      description: 'A practical guide for students and youth to master thoughts, overcome distraction, reduce exam stress, and achieve purposeful living.',
-      coverImage: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80',
-      badge: 'Must Read for Students',
-      pages: 180,
-      availableStock: 120,
-    },
-    {
-      id: 'b4',
-      title: 'Bhagavad-gita As It Is (Student Edition)',
-      author: 'A.C. Bhaktivedanta Swami Prabhupada',
-      category: 'Vedanta & Classics',
-      isKidsSection: false,
-      isFeatured: true,
-      language: 'Bilingual',
-      description: 'The definitive philosophical text explaining karma, consciousness, self-realization, and ethical duty in modern life with clear commentary.',
-      coverImage: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
-      badge: 'Timeless Masterpiece',
-      pages: 850,
-      availableStock: 200,
-    },
-    {
-      id: 'b5',
-      title: 'The Journey Within: Unlocking Inner Potential',
-      author: 'Radhanath Swami',
-      category: 'Self Discovery',
-      isKidsSection: false,
-      isFeatured: true,
-      language: 'English',
-      description: 'An intimate, uplifting guide exploring spiritual resilience, finding peace amidst academic/career pressure, and living with compassion.',
-      coverImage: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80',
-      badge: 'Popular in Colleges',
-      pages: 310,
-      availableStock: 80,
-    },
-    {
-      id: 'b6',
-      title: 'Bal Ramayana & Timeless Heroes',
-      author: 'Prabodhanam Junior Press',
-      category: 'Kids Wisdom',
-      isKidsSection: true,
-      isFeatured: false,
-      language: 'Hindi',
-      description: 'Beautifully narrative stories of duty, courage, friendship, and truthfulness for young readers.',
-      coverImage: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=600&q=80',
-      badge: 'New Release',
-      readingAge: 'Ages 5 - 11',
-      pages: 110,
-      availableStock: 50,
-    },
-    {
-      id: 'b7',
-      title: 'Perfection of Yoga & Meditation',
-      author: 'A.C. Bhaktivedanta Swami Prabhupada',
-      category: 'Self Discovery',
-      isKidsSection: false,
-      isFeatured: false,
-      language: 'English',
-      description: 'Unveiling real yoga beyond physical exercise—connecting the mind to higher consciousness and lasting inner calmness.',
-      coverImage: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80',
-      badge: 'Youth Choice',
-      pages: 140,
-      availableStock: 95,
-    },
-    {
-      id: 'b8',
-      title: 'Sri Isopanisad: Discovering Universal Harmony',
-      author: 'A.C. Bhaktivedanta Swami Prabhupada',
-      category: 'Vedanta & Classics',
-      isKidsSection: false,
-      isFeatured: false,
-      language: 'English',
-      description: '18 essential mantras providing philosophical answers to life’s deepest questions regarding nature, humanity, and supreme truth.',
-      coverImage: 'https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&w=600&q=80',
-      pages: 160,
-      availableStock: 75,
-    }
-  ];
+  private booksFile = path.resolve(__dirname, '../../data/books.json');
+  private salesLogsFile = path.resolve(__dirname, '../../data/sales_logs.json');
+  private books: Book[] = [];
+  private salesLogs: SalesLogEntry[] = [];
 
-  findAll(category?: string, search?: string, kidsOnly?: boolean): Book[] {
-    let result = [...this.books];
-    if (kidsOnly) {
-      result = result.filter(b => b.isKidsSection);
+  constructor() {
+    this.ensureDataDirectory();
+    this.loadBooks();
+    this.loadSalesLogs();
+  }
+
+  private ensureDataDirectory() {
+    const dataDir = path.dirname(this.booksFile);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
     }
+  }
+
+  private loadBooks() {
+    if (fs.existsSync(this.booksFile)) {
+      try {
+        const fileData = fs.readFileSync(this.booksFile, 'utf-8');
+        this.books = JSON.parse(fileData);
+        if (Array.isArray(this.books) && this.books.length > 0) {
+          return;
+        }
+      } catch (e) {
+        console.error('Error reading books.json, re-seeding...', e);
+      }
+    }
+    // Seed books from CSV / XLSX files
+    this.books = seedBooksFromCSV();
+    this.saveBooksToDisk();
+  }
+
+  private saveBooksToDisk() {
+    try {
+      fs.writeFileSync(this.booksFile, JSON.stringify(this.books, null, 2), 'utf-8');
+    } catch (e) {
+      console.error('Error writing books.json:', e);
+    }
+  }
+
+  private loadSalesLogs() {
+    if (fs.existsSync(this.salesLogsFile)) {
+      try {
+        const fileData = fs.readFileSync(this.salesLogsFile, 'utf-8');
+        this.salesLogs = JSON.parse(fileData);
+      } catch (e) {
+        console.error('Error reading sales_logs.json:', e);
+        this.salesLogs = [];
+      }
+    }
+  }
+
+  private saveSalesLogsToDisk() {
+    try {
+      fs.writeFileSync(this.salesLogsFile, JSON.stringify(this.salesLogs, null, 2), 'utf-8');
+    } catch (e) {
+      console.error('Error writing sales_logs.json:', e);
+    }
+  }
+
+  findAll(mainCategory?: string, category?: string, search?: string, kidsOnly?: boolean): Book[] {
+    let result = this.books;
+
+    if (mainCategory && mainCategory !== 'All') {
+      result = result.filter(b => b.mainCategory === mainCategory);
+    }
+
     if (category && category !== 'All') {
       result = result.filter(b => b.category.toLowerCase() === category.toLowerCase());
     }
+
+    if (kidsOnly) {
+      result = result.filter(b => b.isKidsSection);
+    }
+
     if (search && search.trim() !== '') {
       const q = search.toLowerCase().trim();
       result = result.filter(
         b =>
           b.title.toLowerCase().includes(q) ||
+          (b.hinglishTitle && b.hinglishTitle.toLowerCase().includes(q)) ||
           b.author.toLowerCase().includes(q) ||
-          b.description.toLowerCase().includes(q)
+          (b.description && b.description.toLowerCase().includes(q)) ||
+          (b.problemAddressedTag && b.problemAddressedTag.toLowerCase().includes(q)),
       );
     }
+
     return result;
   }
 
   findOne(id: string): Book {
     const book = this.books.find(b => b.id === id);
-    if (!book) throw new NotFoundException(`Book with ID ${id} not found`);
+    if (!book) {
+      throw new NotFoundException(`Book with ID "${id}" not found`);
+    }
     return book;
   }
 
-  create(bookData: Omit<Book, 'id'>): Book {
+  create(bookData: Partial<Book>): Book {
     const newBook: Book = {
-      id: 'b' + (Date.now()),
-      ...bookData,
+      id: `b_${Date.now()}`,
+      title: bookData.title || 'Untitled Book',
+      hinglishTitle: bookData.hinglishTitle || '',
+      author: bookData.author || 'Unknown Author',
+      mainCategory: bookData.mainCategory || 'Acharya Prashant Foundation',
+      category: bookData.category || 'Mind & Character',
+      isKidsSection: !!bookData.isKidsSection,
+      isFeatured: !!bookData.isFeatured,
+      language: bookData.language || 'English',
+      description: bookData.description || '',
+      coverImage: bookData.coverImage || '',
+      badge: bookData.badge || '',
+      readingAge: bookData.readingAge || '',
+      pages: bookData.pages || 150,
+      mrp: Number(bookData.mrp) || 0,
+      buyingCost: Number(bookData.buyingCost) || 0,
+      sellingPrice: Number(bookData.sellingPrice) || Number(bookData.mrp) || 0,
+      availableStock: Number(bookData.availableStock) || 0,
+      externalLink: bookData.externalLink || '',
+      problemAddressedTag: bookData.problemAddressedTag || 'Personal Growth & Freedom',
     };
+
     this.books.unshift(newBook);
+    this.saveBooksToDisk();
     return newBook;
   }
 
-  update(id: string, bookData: Partial<Book>): Book {
+  update(id: string, updateData: Partial<Book>): Book {
     const index = this.books.findIndex(b => b.id === id);
-    if (index === -1) throw new NotFoundException(`Book with ID ${id} not found`);
-    this.books[index] = { ...this.books[index], ...bookData };
-    return this.books[index];
+    if (index === -1) {
+      throw new NotFoundException(`Book with ID "${id}" not found`);
+    }
+
+    const updatedBook = {
+      ...this.books[index],
+      ...updateData,
+      mrp: updateData.mrp !== undefined ? Number(updateData.mrp) : this.books[index].mrp,
+      buyingCost: updateData.buyingCost !== undefined ? Number(updateData.buyingCost) : this.books[index].buyingCost,
+      sellingPrice: updateData.sellingPrice !== undefined ? Number(updateData.sellingPrice) : this.books[index].sellingPrice,
+      availableStock: updateData.availableStock !== undefined ? Number(updateData.availableStock) : this.books[index].availableStock,
+    };
+
+    this.books[index] = updatedBook;
+    this.saveBooksToDisk();
+    return updatedBook;
   }
 
   remove(id: string): { success: boolean } {
     const index = this.books.findIndex(b => b.id === id);
-    if (index === -1) throw new NotFoundException(`Book with ID ${id} not found`);
+    if (index === -1) {
+      throw new NotFoundException(`Book with ID "${id}" not found`);
+    }
     this.books.splice(index, 1);
+    this.saveBooksToDisk();
     return { success: true };
   }
 
+  // --- Sales Logging Methods ---
+
+  recordSalesEntry(entryData: Partial<SalesLogEntry>): SalesLogEntry {
+    const book = this.findOne(entryData.bookId);
+    const qty = Math.max(1, Number(entryData.quantitySold) || 1);
+    const priceOnDate = Number(entryData.sellingPriceOnDate) || book.sellingPrice || book.mrp || 0;
+    const total = qty * priceOnDate;
+
+    const salesEntry: SalesLogEntry = {
+      id: `sale_${Date.now()}`,
+      date: entryData.date || new Date().toISOString().split('T')[0],
+      bookId: book.id,
+      bookTitle: book.title,
+      mainCategory: book.mainCategory,
+      quantitySold: qty,
+      sellingPriceOnDate: priceOnDate,
+      totalAmount: total,
+      recordedBy: entryData.recordedBy || 'Stall Volunteer',
+      location: entryData.location || 'Stall Location',
+      notes: entryData.notes || '',
+      createdAt: new Date().toISOString(),
+    };
+
+    // Update book stock & current selling price
+    book.availableStock = Math.max(0, book.availableStock - qty);
+    book.sellingPrice = priceOnDate;
+    this.saveBooksToDisk();
+
+    this.salesLogs.unshift(salesEntry);
+    this.saveSalesLogsToDisk();
+
+    return salesEntry;
+  }
+
+  getSalesLogs(): SalesLogEntry[] {
+    return this.salesLogs;
+  }
+
+  getMainCategories(): string[] {
+    return ['Acharya Prashant Foundation', 'Other Author'];
+  }
+
   getCategories(): string[] {
-    return ['All', 'Kids Wisdom', 'Mind & Character', 'Self Discovery', 'Vedanta & Classics'];
+    return ['Kids Wisdom', 'Mind & Character', 'Self Discovery', 'Vedanta & Classics'];
   }
 }

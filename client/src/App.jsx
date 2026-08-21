@@ -23,7 +23,7 @@ const initialBooksSeed = [
     isFeatured: true,
     language: 'Bilingual',
     description: 'Charming illustrated stories bringing timeless ethical principles, bravery, and character-building values to young children.',
-    coverImage: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80',
+    coverImage: '/assets/books/book_images/book_image_1.jpg',
     badge: 'Kids Favorite',
     readingAge: 'Ages 6 - 12',
     pages: 120,
@@ -38,7 +38,7 @@ const initialBooksSeed = [
     isFeatured: true,
     language: 'English',
     description: 'Interactive short stories designed to instill concentration, kindness, respect for elders, and mental clarity in young minds.',
-    coverImage: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
+    coverImage: '/assets/books/book_images/book_image_2.jpg',
     badge: 'Bestseller for Kids',
     readingAge: 'Ages 8 - 14',
     pages: 96,
@@ -47,87 +47,17 @@ const initialBooksSeed = [
   {
     id: 'b3',
     title: 'The Science of Mind Control & Focus',
-    author: 'A.C. Bhaktivedanta Swami Prabhupada',
+    author: 'Acharya Prashant',
     category: 'Mind & Character',
     isKidsSection: false,
     isFeatured: true,
     language: 'English',
     description: 'A practical guide for students and youth to master thoughts, overcome distraction, reduce exam stress, and achieve purposeful living.',
-    coverImage: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=80',
+    coverImage: '/assets/books/book_images/book_image_3.jpg',
     badge: 'Must Read for Students',
     pages: 180,
     availableStock: 120,
   },
-  {
-    id: 'b4',
-    title: 'Bhagavad-gita As It Is (Student Edition)',
-    author: 'A.C. Bhaktivedanta Swami Prabhupada',
-    category: 'Vedanta & Classics',
-    isKidsSection: false,
-    isFeatured: true,
-    language: 'Bilingual',
-    description: 'The definitive philosophical text explaining karma, consciousness, self-realization, and ethical duty in modern life with clear commentary.',
-    coverImage: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
-    badge: 'Timeless Masterpiece',
-    pages: 850,
-    availableStock: 200,
-  },
-  {
-    id: 'b5',
-    title: 'The Journey Within: Unlocking Inner Potential',
-    author: 'Radhanath Swami',
-    category: 'Self Discovery',
-    isKidsSection: false,
-    isFeatured: true,
-    language: 'English',
-    description: 'An intimate, uplifting guide exploring spiritual resilience, finding peace amidst academic/career pressure, and living with compassion.',
-    coverImage: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80',
-    badge: 'Popular in Colleges',
-    pages: 310,
-    availableStock: 80,
-  },
-  {
-    id: 'b6',
-    title: 'Bal Ramayana & Timeless Heroes',
-    author: 'Prabodhanam Junior Press',
-    category: 'Kids Wisdom',
-    isKidsSection: true,
-    isFeatured: false,
-    language: 'Hindi',
-    description: 'Beautifully narrative stories of duty, courage, friendship, and truthfulness for young readers.',
-    coverImage: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=600&q=80',
-    badge: 'New Release',
-    readingAge: 'Ages 5 - 11',
-    pages: 110,
-    availableStock: 50,
-  },
-  {
-    id: 'b7',
-    title: 'Perfection of Yoga & Meditation',
-    author: 'A.C. Bhaktivedanta Swami Prabhupada',
-    category: 'Self Discovery',
-    isKidsSection: false,
-    isFeatured: false,
-    language: 'English',
-    description: 'Unveiling real yoga beyond physical exercise—connecting the mind to higher consciousness and lasting inner calmness.',
-    coverImage: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80',
-    badge: 'Youth Choice',
-    pages: 140,
-    availableStock: 95,
-  },
-  {
-    id: 'b8',
-    title: 'Sri Isopanisad: Discovering Universal Harmony',
-    author: 'A.C. Bhaktivedanta Swami Prabhupada',
-    category: 'Vedanta & Classics',
-    isKidsSection: false,
-    isFeatured: false,
-    language: 'English',
-    description: '18 essential mantras providing philosophical answers to life’s deepest questions regarding nature, humanity, and supreme truth.',
-    coverImage: 'https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&w=600&q=80',
-    pages: 160,
-    availableStock: 75,
-  }
 ];
 
 const initialEventsSeed = [
@@ -179,12 +109,33 @@ export default function App() {
   const [events, setEvents] = useState(initialEventsSeed);
   const [bookings, setBookings] = useState([]);
 
+  // Theme Management (Light / Dark switchable)
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   // Modals state
   const [hostModalOpen, setHostModalOpen] = useState(false);
   const [volunteerModalOpen, setVolunteerModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState('Admin');
 
   useEffect(() => {
     // Attempt fetching live data from NestJS Backend API
@@ -200,7 +151,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-orange-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300">
       
       {/* Header Navigation */}
       <Navbar
@@ -210,6 +161,8 @@ export default function App() {
         onOpenVolunteerModal={() => setVolunteerModalOpen(true)}
         onOpenAdminModal={() => setAdminModalOpen(true)}
         isAdmin={isAdmin}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
       {/* Main Content Sections */}
@@ -217,52 +170,47 @@ export default function App() {
         {activeTab === 'home' && (
           <>
             <Hero
-              setActiveTab={setActiveTab}
-              onOpenHostModal={() => setHostModalOpen(true)}
+              onExploreBooks={() => setActiveTab('books')}
+              onHostStall={() => setHostModalOpen(true)}
             />
-
-            {/* Kids Corner Preview Banner */}
-            <div className="bg-gradient-to-r from-pink-900/30 via-purple-900/20 to-slate-950 border-y border-pink-500/20 py-10 my-8">
-              <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div>
-                  <span className="text-xs font-bold text-pink-400 uppercase tracking-widest">Special Feature</span>
-                  <h3 className="text-2xl sm:text-3xl font-extrabold text-white">Bal Prabodhanam • Kids Wisdom Corner 🎈</h3>
-                  <p className="text-xs sm:text-sm text-slate-300 mt-1">Illustrated moral stories, Bal Gita, and character tales for school children.</p>
-                </div>
-                <button
-                  onClick={() => setActiveTab('kids')}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-lg shadow-pink-500/20 hover:scale-105 transition-transform"
-                >
-                  Explore Kids Collection
-                </button>
-              </div>
-            </div>
-
-            <BooksCatalog
+            
+            <KidsSection
               books={books}
-              onBookSelect={(b) => setSelectedBook(b)}
+              onBookSelect={(book) => setSelectedBook(book)}
             />
 
-            <EventsGallery events={events} />
+            <EventsGallery
+              events={events}
+              onHostStall={() => setHostModalOpen(true)}
+            />
           </>
         )}
 
         {activeTab === 'kids' && (
-          <KidsSection
-            books={books}
-            onBookSelect={(b) => setSelectedBook(b)}
-          />
+          <div className="py-8">
+            <KidsSection
+              books={books}
+              onBookSelect={(book) => setSelectedBook(book)}
+            />
+          </div>
         )}
 
         {activeTab === 'books' && (
-          <BooksCatalog
-            books={books}
-            onBookSelect={(b) => setSelectedBook(b)}
-          />
+          <div className="py-8">
+            <BooksCatalog
+              books={books}
+              onBookSelect={(book) => setSelectedBook(book)}
+            />
+          </div>
         )}
 
         {activeTab === 'events' && (
-          <EventsGallery events={events} />
+          <div className="py-8">
+            <EventsGallery
+              events={events}
+              onHostStall={() => setHostModalOpen(true)}
+            />
+          </div>
         )}
       </main>
 
@@ -270,13 +218,15 @@ export default function App() {
       <Footer
         setActiveTab={setActiveTab}
         onOpenHostModal={() => setHostModalOpen(true)}
-        onOpenVolunteerModal={() => setVolunteerModalOpen(true)}
       />
 
       {/* Interactive Modals */}
       <HostStallModal
         isOpen={hostModalOpen}
         onClose={() => setHostModalOpen(false)}
+        onSubmitSuccess={(newBooking) => {
+          setBookings([newBooking, ...bookings]);
+        }}
       />
 
       <VolunteerModal
@@ -287,7 +237,7 @@ export default function App() {
       <BookDetailModal
         book={selectedBook}
         onClose={() => setSelectedBook(null)}
-        onRequestCopy={(b) => {
+        onHostStall={() => {
           setSelectedBook(null);
           setHostModalOpen(true);
         }}
@@ -298,6 +248,8 @@ export default function App() {
         onClose={() => setAdminModalOpen(false)}
         isAdmin={isAdmin}
         setIsAdmin={setIsAdmin}
+        userRole={userRole}
+        setUserRole={setUserRole}
         books={books}
         setBooks={setBooks}
         bookings={bookings}

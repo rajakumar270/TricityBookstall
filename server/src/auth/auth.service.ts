@@ -3,12 +3,24 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 @Injectable()
 export class AuthService {
   login(username: string, pass: string) {
-    if ((username === 'admin' || username === 'prabodhanam') && pass === 'admin123') {
+    const cleanUser = username.trim().toLowerCase();
+    const cleanPass = pass.trim();
+
+    if ((cleanUser === 'admin' || cleanUser === 'prabodhanam') && cleanPass === 'admin123') {
       return {
-        accessToken: 'token_' + Date.now(),
-        user: { username: 'admin', role: 'SuperAdmin', name: 'Prabodhanam Admin' },
+        accessToken: 'token_admin_' + Date.now(),
+        user: { username: 'admin', role: 'Admin', name: 'Prabodhanam Admin' },
       };
     }
-    throw new UnauthorizedException('Invalid credentials. Default is admin / admin123');
+
+    if ((cleanUser === 'volunteer' || cleanUser === 'stall') && (cleanPass === 'volunteer123' || cleanPass === 'stall123')) {
+      return {
+        accessToken: 'token_volunteer_' + Date.now(),
+        user: { username: 'volunteer', role: 'Volunteer', name: 'Stall Team Volunteer' },
+      };
+    }
+
+    throw new UnauthorizedException('Invalid credentials. Admin: admin/admin123 | Volunteer: volunteer/volunteer123');
   }
 }
+

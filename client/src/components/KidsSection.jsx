@@ -19,8 +19,8 @@ export default function KidsSection({ books, onBookSelect }) {
 
   const filteredKidsBooks = kidsBooks.filter(b => {
     if (selectedAge === 'All') return true;
-    if (selectedAge === '5-10' && b.readingAge?.includes('5') || b.readingAge?.includes('6')) return true;
-    if (selectedAge === '11-15' && b.readingAge?.includes('11') || b.readingAge?.includes('12') || b.readingAge?.includes('14')) return true;
+    if (selectedAge === '5-10' && (b.readingAge?.includes('5') || b.readingAge?.includes('6'))) return true;
+    if (selectedAge === '11-15' && (b.readingAge?.includes('11') || b.readingAge?.includes('12') || b.readingAge?.includes('14'))) return true;
     return true;
   });
 
@@ -28,7 +28,7 @@ export default function KidsSection({ books, onBookSelect }) {
     <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       
       {/* Kids Corner Header Banner */}
-      <div className="relative rounded-3xl p-8 sm:p-12 overflow-hidden bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 shadow-2xl shadow-purple-500/20 border border-pink-400/30">
+      <div className="relative rounded-3xl p-8 sm:p-12 overflow-hidden bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 shadow-2xl shadow-purple-500/20 border border-pink-400/30 text-white">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
         
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
@@ -100,16 +100,16 @@ export default function KidsSection({ books, onBookSelect }) {
       {/* Age Filters */}
       <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="text-2xl font-extrabold text-white flex items-center space-x-2">
+          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
             <span>Kids & Youth Book Collection</span>
-            <span className="bg-pink-500/20 text-pink-400 text-xs px-2.5 py-1 rounded-full border border-pink-500/30">
+            <span className="bg-pink-500/20 text-pink-600 dark:text-pink-400 text-xs px-2.5 py-1 rounded-full border border-pink-500/30">
               {filteredKidsBooks.length} Books
             </span>
           </h3>
-          <p className="text-xs text-slate-400">Select age group or browse illustrated classics</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Select age group or browse illustrated classics</p>
         </div>
 
-        <div className="flex items-center space-x-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+        <div className="flex items-center space-x-2 bg-white dark:bg-slate-900/90 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
           {['All', '5-10', '11-15'].map((age) => (
             <button
               key={age}
@@ -117,7 +117,7 @@ export default function KidsSection({ books, onBookSelect }) {
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                 selectedAge === age
                   ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               {age === 'All' ? 'All Ages' : `Ages ${age}`}
@@ -131,36 +131,52 @@ export default function KidsSection({ books, onBookSelect }) {
         {filteredKidsBooks.map((book) => (
           <div
             key={book.id}
-            className="glass-card rounded-2xl overflow-hidden flex flex-col group border border-slate-800 hover:border-pink-500/50 transition-all duration-300"
+            className="glass-card rounded-2xl overflow-hidden flex flex-col group border border-slate-200 dark:border-slate-800 hover:border-pink-500/50 transition-all duration-300"
           >
             {/* Book Cover Container */}
-            <div className="relative h-64 overflow-hidden bg-slate-900">
-              <img
-                src={book.coverImage}
-                alt={book.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
+            <div className="relative h-64 overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-950 dark:via-slate-900 dark:to-slate-950 flex flex-col justify-between p-4">
+              {book.coverImage ? (
+                <img
+                  src={book.coverImage}
+                  alt={book.title}
+                  className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              ) : null}
+
+              {(!book.coverImage || book.coverImage.trim() === '') && (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-3 space-y-2.5 z-0">
+                  <div className="w-12 h-12 rounded-2xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-600 dark:text-pink-300">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <span className="font-extrabold text-sm text-slate-900 dark:text-white line-clamp-2">{book.title}</span>
+                  <span className="text-xs text-pink-600 dark:text-pink-300 font-semibold">{book.author}</span>
+                </div>
+              )}
+
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-80 pointer-events-none" />
 
               {/* Badge overlay */}
               {book.badge && (
-                <div className="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-[11px] font-extrabold px-3 py-1 rounded-full shadow-lg">
+                <div className="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-[11px] font-extrabold px-3 py-1 rounded-full shadow-lg z-10">
                   {book.badge}
                 </div>
               )}
 
               {book.readingAge && (
-                <div className="absolute top-3 right-3 bg-slate-950/80 backdrop-blur-md text-amber-300 text-[11px] font-bold px-3 py-1 rounded-full border border-amber-500/30">
+                <div className="absolute top-3 right-3 bg-slate-950/80 backdrop-blur-md text-amber-300 text-[11px] font-bold px-3 py-1 rounded-full border border-amber-500/30 z-10">
                   {book.readingAge}
                 </div>
               )}
 
-              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-slate-300">
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-slate-200 z-10">
                 <span className="bg-slate-900/90 px-2.5 py-1 rounded-md border border-slate-700">
                   {book.language}
                 </span>
                 <span className="bg-slate-900/90 px-2.5 py-1 rounded-md border border-slate-700">
-                  {book.pages} Pages
+                  {book.pages || 120} Pages
                 </span>
               </div>
             </div>
@@ -168,26 +184,26 @@ export default function KidsSection({ books, onBookSelect }) {
             {/* Content Details */}
             <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
               <div>
-                <h4 className="text-lg font-bold text-white group-hover:text-pink-400 transition-colors line-clamp-1">
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors line-clamp-1">
                   {book.title}
                 </h4>
-                <p className="text-xs text-amber-400 font-semibold mt-1">
+                <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold mt-1">
                   By {book.author}
                 </p>
-                <p className="text-xs text-slate-300 mt-2 line-clamp-3 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 line-clamp-3 leading-relaxed">
                   {book.description}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
-                <div className="text-xs text-emerald-400 font-semibold flex items-center space-x-1">
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center space-x-1">
                   <Check className="w-3.5 h-3.5" />
                   <span>In Stock ({book.availableStock})</span>
                 </div>
 
                 <button
                   onClick={() => onBookSelect(book)}
-                  className="flex items-center space-x-1.5 bg-pink-500/10 hover:bg-pink-500 text-pink-400 hover:text-white font-bold text-xs px-4 py-2 rounded-xl border border-pink-500/30 transition-all shadow-md"
+                  className="flex items-center space-x-1.5 bg-pink-500/10 hover:bg-pink-500 text-pink-600 hover:text-white dark:text-pink-400 dark:hover:text-white font-bold text-xs px-4 py-2 rounded-xl border border-pink-500/30 transition-all shadow-md"
                 >
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>Preview Book</span>
