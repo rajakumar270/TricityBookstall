@@ -1,9 +1,15 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const getApiBase = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+    return `http://${window.location.hostname}:5001/api`;
+  }
+  return 'http://localhost:5001/api';
+};
 
 export const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: getApiBase(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -124,10 +130,10 @@ export const loginAdmin = async (username, password) => {
     const u = username.toLowerCase().trim();
     const p = password.trim();
 
-    if ((u === 'admin' || u === 'prabodhanam') && p === 'admin123') {
+    if ((u === 'admin' || u === 'ekatva' || u === 'prabodhanam') && p === 'admin123') {
       return {
         accessToken: 'token_admin',
-        user: { username: 'admin', role: 'Admin', name: 'Prabodhanam Admin' },
+        user: { username: 'admin', role: 'Admin', name: 'Ekatva Foundation Admin' },
       };
     }
 

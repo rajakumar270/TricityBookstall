@@ -14,7 +14,7 @@ export default function Footer({ setActiveTab, onOpenHostModal, onOpenVolunteerM
               <div className="w-10 h-10 rounded-xl bg-orange-500 p-0.5">
                 <img src="/assets/cropped-IMG-20260203-WA0031.jpg" alt="Logo" className="w-full h-full object-cover rounded-[10px]" />
               </div>
-              <span className="font-extrabold text-xl text-slate-900 dark:text-white">Prabodhanam</span>
+              <span className="font-extrabold text-xl text-slate-900 dark:text-white">Ekatva Foundation</span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               A volunteer initiative bringing philosophical literature, kids wisdom, and reflective dialogue to schools, colleges, and communities across Chandigarh, Mohali, and Panchkula.
@@ -47,7 +47,7 @@ export default function Footer({ setActiveTab, onOpenHostModal, onOpenVolunteerM
             <h4 className="text-xs font-extrabold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-4">Contact Tricity Stall</h4>
             <p className="text-xs text-slate-700 dark:text-slate-300 flex items-center space-x-2">
               <Mail className="w-4 h-4 text-orange-500 dark:text-orange-400" />
-              <span>prabodhanambookstall@gmail.com</span>
+              <span>ekatvafoundation.bookstall@gmail.com</span>
             </p>
             <p className="text-xs text-slate-700 dark:text-slate-300 flex items-center space-x-2">
               <Phone className="w-4 h-4 text-orange-500 dark:text-orange-400" />
@@ -62,7 +62,7 @@ export default function Footer({ setActiveTab, onOpenHostModal, onOpenVolunteerM
         </div>
 
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
-          <p>© {new Date().getFullYear()} Tricity Bookstall (Prabodhanam). Nurturing Clarity & Character.</p>
+          <p>© {new Date().getFullYear()} Tricity Bookstall (Ekatva Foundation). Nurturing Clarity & Character.</p>
           <div className="flex items-center space-x-1">
             <span>Built with</span>
             <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline" />

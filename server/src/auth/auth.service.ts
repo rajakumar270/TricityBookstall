@@ -6,10 +6,10 @@ export class AuthService {
     const cleanUser = username.trim().toLowerCase();
     const cleanPass = pass.trim();
 
-    if ((cleanUser === 'admin' || cleanUser === 'prabodhanam') && cleanPass === 'admin123') {
+    if ((cleanUser === 'admin' || cleanUser === 'ekatva' || cleanUser === 'prabodhanam') && cleanPass === 'admin123') {
       return {
         accessToken: 'token_admin_' + Date.now(),
-        user: { username: 'admin', role: 'Admin', name: 'Prabodhanam Admin' },
+        user: { username: 'admin', role: 'Admin', name: 'Ekatva Foundation Admin' },
       };
     }
 

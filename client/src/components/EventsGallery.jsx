@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Calendar, MapPin, Sparkles, Building2, Users, ArrowRight, Award, ExternalLink, Image as ImageIcon } from 'lucide-react';
 
-export default function EventsGallery({ events, onHostStall }) {
+export default function EventsGallery({ events, onHostStall, siteVersion = 'v2' }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const categories = ['All', 'University Fest', 'School PTM', 'Book Fair'];
+
+  const isV2 = siteVersion === 'v2';
 
   const filteredEvents = events.filter(ev => {
     if (selectedCategory === 'All') return true;
@@ -15,23 +17,29 @@ export default function EventsGallery({ events, onHostStall }) {
       
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
-        <div className="inline-flex items-center space-x-2 bg-blue-500/10 border border-blue-500/30 rounded-full px-4 py-1 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider">
+        <div className={`inline-flex items-center space-x-2 rounded-full px-4 py-1 text-xs font-bold uppercase tracking-wider ${
+          isV2
+            ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#A36B42]'
+            : 'bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400'
+        }`}>
           <Calendar className="w-3.5 h-3.5" />
           <span>Real Campus & Community Impact</span>
         </div>
         
-        <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          Recent Campus <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">Events & Bookstalls</span>
+        <h2 className={`text-3xl sm:text-5xl tracking-tight ${isV2 ? 'font-serif-editorial text-[#242220]' : 'font-extrabold text-slate-900 dark:text-white'}`}>
+          Recent Campus <span className={isV2 ? 'text-[#A36B42] italic font-semibold' : 'bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent'}>Events & Bookstalls</span>
         </h2>
         
-        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">
+        <p className={`text-sm sm:text-base ${isV2 ? 'text-[#5C554E]' : 'text-slate-600 dark:text-slate-300'}`}>
           Photographic glimpses of wisdom bookstalls hosted at Panjab University, CGC Landran, Doon Public School, and public auditoriums.
         </p>
       </div>
 
       {/* Category Filter Pills */}
       <div className="mt-8 flex justify-center">
-        <div className="inline-flex bg-white dark:bg-slate-900/90 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-full overflow-x-auto">
+        <div className={`inline-flex p-1.5 rounded-2xl border shadow-sm max-w-full overflow-x-auto ${
+          isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20' : 'bg-white dark:bg-slate-900/90 border-slate-200 dark:border-slate-800'
+        }`}>
           {categories.map((cat) => {
             const isActive = selectedCategory === cat;
             return (
@@ -40,8 +48,10 @@ export default function EventsGallery({ events, onHostStall }) {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    ? isV2 
+                      ? 'bg-[#242220] text-white shadow-md'
+                      : 'bg-blue-600 text-white shadow-md'
+                    : isV2 ? 'text-[#5C554E] hover:text-[#242220]' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {cat}
@@ -56,42 +66,50 @@ export default function EventsGallery({ events, onHostStall }) {
         {filteredEvents.map((ev) => (
           <div
             key={ev.id}
-            className="glass-card rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between"
+            className={`rounded-3xl overflow-hidden border transition-all duration-300 flex flex-col justify-between shadow-sm ${
+              isV2
+                ? 'bg-[#EFEBE2] border-[#A36B42]/20 hover:border-[#A36B42]/50 hover:-translate-y-1'
+                : 'glass-card border-slate-200 dark:border-slate-800 hover:border-blue-500/40'
+            }`}
           >
             <div className="p-6 space-y-4">
               
               {/* Event Badge & Title */}
               <div className="flex items-start justify-between flex-wrap gap-2">
                 <div>
-                  <span className="inline-block bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 text-[11px] font-bold px-3 py-1 rounded-full mb-2">
+                  <span className={`inline-block border text-[11px] font-bold px-3 py-1 rounded-full mb-2 ${
+                    isV2 ? 'bg-[#F7F4EE] text-[#A36B42] border-[#A36B42]/30' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                  }`}>
                     {ev.category}
                   </span>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-snug">
+                  <h3 className={`text-xl leading-snug ${isV2 ? 'font-serif-editorial font-bold text-[#242220]' : 'font-bold text-slate-900 dark:text-white'}`}>
                     {ev.title}
                   </h3>
                 </div>
 
-                <div className="flex items-center space-x-1 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-xl">
+                <div className={`flex items-center space-x-1 text-xs font-semibold px-3 py-1 rounded-xl border ${
+                  isV2 ? 'bg-[#F7F4EE] text-[#A36B42] border-[#A36B42]/30' : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                }`}>
                   <Calendar className="w-3.5 h-3.5" />
                   <span>{ev.date}</span>
                 </div>
               </div>
 
               {/* Location pin */}
-              <div className="flex items-center space-x-1.5 text-xs text-slate-600 dark:text-slate-400">
-                <MapPin className="w-4 h-4 text-orange-500 shrink-0" />
+              <div className={`flex items-center space-x-1.5 text-xs ${isV2 ? 'text-[#5C554E]' : 'text-slate-600 dark:text-slate-400'}`}>
+                <MapPin className={`w-4 h-4 shrink-0 ${isV2 ? 'text-[#A36B42]' : 'text-orange-500'}`} />
                 <span>{ev.location}</span>
               </div>
 
               {/* Description */}
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              <p className={`text-xs sm:text-sm leading-relaxed ${isV2 ? 'text-[#5C554E]' : 'text-slate-600 dark:text-slate-300'}`}>
                 {ev.description}
               </p>
             </div>
 
             {/* Photo Collage Thumbnail Strip */}
             <div className="px-6 pb-6 pt-2">
-              <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center space-x-1">
+              <div className={`text-[11px] font-bold uppercase tracking-wider mb-2 flex items-center space-x-1 ${isV2 ? 'text-[#A36B42]' : 'text-slate-500 dark:text-slate-400'}`}>
                 <ImageIcon className="w-3.5 h-3.5" />
                 <span>Event Snapshots</span>
               </div>
@@ -100,7 +118,9 @@ export default function EventsGallery({ events, onHostStall }) {
                 {ev.images.map((img, index) => (
                   <div
                     key={index}
-                    className="relative h-20 sm:h-24 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 group cursor-pointer"
+                    className={`relative h-20 sm:h-24 rounded-xl overflow-hidden border group cursor-pointer ${
+                      isV2 ? 'bg-[#242220] border-[#A36B42]/20' : 'bg-slate-200 dark:bg-slate-800 border-slate-300 dark:border-slate-700'
+                    }`}
                   >
                     <img
                       src={img}
@@ -119,19 +139,25 @@ export default function EventsGallery({ events, onHostStall }) {
       </div>
 
       {/* Institutional Invite Banner */}
-      <div className="mt-14 glass-panel rounded-3xl p-8 sm:p-10 border border-orange-500/30 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className={`mt-14 rounded-3xl p-8 sm:p-10 border flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm ${
+        isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20' : 'glass-panel border-orange-500/30'
+      }`}>
         <div className="space-y-2 text-center md:text-left">
-          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+          <h3 className={`text-2xl ${isV2 ? 'font-serif-editorial font-bold text-[#242220]' : 'font-extrabold text-slate-900 dark:text-white'}`}>
             Want to Host a Wisdom Bookstall at Your Institution?
           </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-300 max-w-2xl">
+          <p className={`text-sm max-w-2xl ${isV2 ? 'text-[#5C554E]' : 'text-slate-600 dark:text-slate-300'}`}>
             We collaborate with student councils, fests, PTMs, and NSS/NCC wings to set up engaging bookstalls with zero institutional setup cost.
           </p>
         </div>
 
         <button
           onClick={onHostStall}
-          className="whitespace-nowrap bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-sm px-6 py-3.5 rounded-2xl shadow-lg shadow-orange-500/25 transition-all"
+          className={`whitespace-nowrap font-bold text-xs px-6 py-3.5 rounded-full shadow-md transition-all ${
+            isV2
+              ? 'bg-[#242220] hover:bg-[#3D3834] text-white hover:scale-105'
+              : 'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white'
+          }`}
         >
           Submit Stall Request Form
         </button>

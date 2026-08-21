@@ -15,6 +15,7 @@ export default function AdminDashboard({
   setBooks,
   bookings,
   setBookings,
+  siteVersion = 'v2',
 }) {
   const [activeTab, setActiveTab] = useState('books'); // 'books' | 'sales' | 'csv' | 'requests'
   const [selectedMainCatFilter, setSelectedMainCatFilter] = useState('All'); // 'All' | 'Acharya Prashant Foundation' | 'Other Author'
@@ -78,6 +79,8 @@ export default function AdminDashboard({
   };
 
   if (!isOpen) return null;
+
+  const isV2 = siteVersion === 'v2';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -201,7 +204,7 @@ export default function AdminDashboard({
 "1984","George Orwell",199,99.5,99.5,5,"English","Other Author","Mind & Character","Mind Control & Freedom","No"
 "Animal Farm","George Orwell",125,62.5,62.5,4,"English","Other Author","Mind & Character","Political Awareness","No"
 "स्त्री","Acharya Prashant",280,100,100,10,"Hindi","Acharya Prashant Foundation","Self Discovery","Relationships & Self-Respect","No"
-"Illustrated Bal Gita","Prabodhanam Series",250,120,120,15,"Bilingual","Acharya Prashant Foundation","Kids Wisdom","Parenting & Character Building","Yes"
+"Illustrated Bal Gita","Ekatva Foundation Series",250,120,120,15,"Bilingual","Acharya Prashant Foundation","Kids Wisdom","Parenting & Character Building","Yes"
 `;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -290,17 +293,25 @@ export default function AdminDashboard({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/90 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-5xl bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden my-4 sm:my-8 flex flex-col max-h-[92vh]">
+      <div className={`relative w-full max-w-5xl rounded-3xl border shadow-2xl overflow-hidden my-4 sm:my-8 flex flex-col max-h-[92vh] transition-colors ${
+        isV2
+          ? 'bg-[#F7F4EE] border-[#A36B42]/30 text-[#242220]'
+          : 'bg-slate-900 border-slate-800 text-white'
+      }`}>
         
         {/* Top Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-800 p-4 sm:p-6 flex items-center justify-between flex-wrap gap-3">
+        <div className={`p-4 sm:p-6 flex items-center justify-between flex-wrap gap-3 ${
+          isV2
+            ? 'bg-[#242220] border-b border-[#A36B42]/30 text-white'
+            : 'bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-800 text-white'
+        }`}>
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 bg-orange-500/20 text-orange-400 rounded-xl border border-orange-500/30">
+            <div className={`p-2.5 rounded-xl border ${isV2 ? 'bg-[#A36B42]/20 text-[#A36B42] border-[#A36B42]/40' : 'bg-orange-500/20 text-orange-400 border-orange-500/30'}`}>
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="text-lg sm:text-xl font-extrabold text-white">Tricity Bookstall Inventory Portal</h3>
+                <h3 className={`text-lg sm:text-xl font-bold ${isV2 ? 'font-serif-editorial text-[#F7F4EE]' : 'text-white font-extrabold'}`}>Ekatva Foundation Bookstall Inventory Portal</h3>
                 {isAdmin && (
                   <span className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border ${
                     userRole === 'Admin' ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' : 'bg-blue-500/20 text-blue-300 border-blue-500/40'
@@ -309,7 +320,7 @@ export default function AdminDashboard({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-400">Books Inventory, MRP/Cost Management & Sales Logger</p>
+              <p className={`text-xs ${isV2 ? 'text-[#D4C9BC]' : 'text-slate-400'}`}>Books Inventory, MRP/Cost Management & Sales Logger</p>
             </div>
           </div>
 
@@ -317,7 +328,7 @@ export default function AdminDashboard({
             {isAdmin && (
               <button
                 onClick={() => { setIsAdmin(false); setCurrentUser(null); }}
-                className="flex items-center space-x-1 text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 px-3 py-1.5 rounded-xl border border-rose-500/30"
+                className="flex items-center space-x-1 text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 px-3 py-1.5 rounded-xl border border-rose-500/30 font-bold"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Logout</span>
@@ -325,7 +336,7 @@ export default function AdminDashboard({
             )}
             <button
               onClick={onClose}
-              className="bg-slate-800 text-slate-400 hover:text-white p-2 rounded-xl"
+              className={`p-2 rounded-xl transition-colors ${isV2 ? 'bg-[#3D3834] text-[#D4C9BC] hover:text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
             >
               <X className="w-5 h-5" />
             </button>
@@ -338,58 +349,72 @@ export default function AdminDashboard({
             /* Login Form */
             <div className="max-w-md mx-auto py-8 space-y-6">
               <div className="text-center space-y-2">
-                <div className="w-14 h-14 bg-gradient-to-tr from-orange-500 to-amber-400 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
-                  <Smartphone className="w-7 h-7 text-slate-950" />
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto shadow-lg ${
+                  isV2 ? 'bg-[#242220] text-[#A36B42] border border-[#A36B42]/30' : 'bg-gradient-to-tr from-orange-500 to-amber-400 text-slate-950'
+                }`}>
+                  <Smartphone className="w-7 h-7" />
                 </div>
-                <h4 className="text-2xl font-bold text-white">Team Member Login</h4>
-                <p className="text-xs text-slate-400">Log in from mobile or desktop to manage books inventory or record daily stall sales.</p>
+                <h4 className={`text-2xl font-bold ${isV2 ? 'font-serif-editorial text-[#242220]' : 'text-white'}`}>Team Member Login</h4>
+                <p className={`text-xs ${isV2 ? 'text-[#5C554E]' : 'text-slate-400'}`}>Log in from mobile or desktop to manage books inventory or record daily stall sales.</p>
               </div>
 
               {loginError && (
-                <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs p-3 rounded-xl text-center font-medium">
+                <div className="bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs p-3 rounded-xl text-center font-medium">
                   {loginError}
                 </div>
               )}
 
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Username / ID</label>
+                  <label className={`block text-xs font-bold mb-1 ${isV2 ? 'text-[#4A443E]' : 'text-slate-300'}`}>Username / ID</label>
                   <input
                     type="text"
                     required
                     value={loginForm.username}
                     onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
                     placeholder="Username (e.g. admin or volunteer)"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-orange-500"
+                    className={`w-full rounded-xl px-4 py-3 text-xs outline-none transition-all ${
+                      isV2 
+                        ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220] placeholder-[#8C847B] focus:border-[#A36B42]'
+                        : 'bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:border-orange-500'
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Password</label>
+                  <label className={`block text-xs font-bold mb-1 ${isV2 ? 'text-[#4A443E]' : 'text-slate-300'}`}>Password</label>
                   <input
                     type="password"
                     required
                     value={loginForm.password}
                     onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                     placeholder="Password"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-orange-500"
+                    className={`w-full rounded-xl px-4 py-3 text-xs outline-none transition-all ${
+                      isV2 
+                        ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220] placeholder-[#8C847B] focus:border-[#A36B42]'
+                        : 'bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:border-orange-500'
+                    }`}
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-center text-[11px] text-slate-300 pt-1">
-                  <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <span className="block text-orange-400 font-bold">👑 Admin Credentials</span>
-                    <code className="text-slate-400">admin / admin123</code>
+                <div className="grid grid-cols-2 gap-2 text-center text-[11px] pt-1">
+                  <div className={`p-2.5 rounded-xl border ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20 text-[#5C554E]' : 'bg-slate-950 border-slate-800 text-slate-300'}`}>
+                    <span className="block font-bold text-[#A36B42]">👑 Admin</span>
+                    <code>admin / admin123</code>
                   </div>
-                  <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <span className="block text-blue-400 font-bold">📱 Volunteer Credentials</span>
-                    <code className="text-slate-400">volunteer / volunteer123</code>
+                  <div className={`p-2.5 rounded-xl border ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20 text-[#5C554E]' : 'bg-slate-950 border-slate-800 text-slate-300'}`}>
+                    <span className="block font-bold text-blue-600">📱 Volunteer</span>
+                    <code>volunteer / volunteer123</code>
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-slate-950 font-extrabold text-sm py-3.5 rounded-xl shadow-lg transition-all"
+                  className={`w-full font-bold text-sm py-3.5 rounded-full shadow-md transition-all ${
+                    isV2
+                      ? 'bg-[#242220] hover:bg-[#3D3834] text-white hover:scale-102'
+                      : 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950'
+                  }`}
                 >
                   Log In to Mobile Portal
                 </button>
@@ -400,14 +425,14 @@ export default function AdminDashboard({
             <div className="space-y-6">
               
               {/* Navigation Tabs */}
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4 flex-wrap gap-3">
+              <div className={`flex items-center justify-between border-b pb-4 flex-wrap gap-3 ${isV2 ? 'border-[#A36B42]/20' : 'border-slate-800'}`}>
                 <div className="flex space-x-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
                   <button
                     onClick={() => setActiveTab('books')}
-                    className={`flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    className={`flex items-center space-x-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                       activeTab === 'books'
-                        ? 'bg-orange-500 text-slate-950 shadow-md'
-                        : 'bg-slate-950 text-slate-400 hover:text-white'
+                        ? isV2 ? 'bg-[#242220] text-white shadow-md' : 'bg-orange-500 text-slate-950 shadow-md'
+                        : isV2 ? 'bg-[#EFEBE2] text-[#5C554E] hover:text-[#242220] border border-[#A36B42]/20' : 'bg-slate-950 text-slate-400 hover:text-white'
                     }`}
                   >
                     <BookOpen className="w-4 h-4" />
@@ -416,10 +441,10 @@ export default function AdminDashboard({
 
                   <button
                     onClick={() => setActiveTab('sales')}
-                    className={`flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    className={`flex items-center space-x-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                       activeTab === 'sales'
-                        ? 'bg-orange-500 text-slate-950 shadow-md'
-                        : 'bg-slate-950 text-slate-400 hover:text-white'
+                        ? isV2 ? 'bg-[#242220] text-white shadow-md' : 'bg-orange-500 text-slate-950 shadow-md'
+                        : isV2 ? 'bg-[#EFEBE2] text-[#5C554E] hover:text-[#242220] border border-[#A36B42]/20' : 'bg-slate-950 text-slate-400 hover:text-white'
                     }`}
                   >
                     <Calendar className="w-4 h-4" />
@@ -429,10 +454,10 @@ export default function AdminDashboard({
                   {userRole === 'Admin' && (
                     <button
                       onClick={() => setActiveTab('csv')}
-                      className={`flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                      className={`flex items-center space-x-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                         activeTab === 'csv'
-                          ? 'bg-orange-500 text-slate-950 shadow-md'
-                          : 'bg-slate-950 text-slate-400 hover:text-white'
+                          ? isV2 ? 'bg-[#242220] text-white shadow-md' : 'bg-orange-500 text-slate-950 shadow-md'
+                          : isV2 ? 'bg-[#EFEBE2] text-[#5C554E] hover:text-[#242220] border border-[#A36B42]/20' : 'bg-slate-950 text-slate-400 hover:text-white'
                       }`}
                     >
                       <Upload className="w-4 h-4" />
@@ -443,10 +468,10 @@ export default function AdminDashboard({
                   {userRole === 'Admin' && (
                     <button
                       onClick={() => setActiveTab('requests')}
-                      className={`flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                      className={`flex items-center space-x-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                         activeTab === 'requests'
-                          ? 'bg-orange-500 text-slate-950 shadow-md'
-                          : 'bg-slate-950 text-slate-400 hover:text-white'
+                          ? isV2 ? 'bg-[#242220] text-white shadow-md' : 'bg-orange-500 text-slate-950 shadow-md'
+                          : isV2 ? 'bg-[#EFEBE2] text-[#5C554E] hover:text-[#242220] border border-[#A36B42]/20' : 'bg-slate-950 text-slate-400 hover:text-white'
                       }`}
                     >
                       <Building2 className="w-4 h-4" />
@@ -458,7 +483,9 @@ export default function AdminDashboard({
                 {activeTab === 'books' && userRole === 'Admin' && (
                   <button
                     onClick={handleOpenAddModal}
-                    className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-md ml-auto"
+                    className={`flex items-center space-x-1 text-xs font-extrabold px-4 py-2.5 rounded-full transition-all shadow-md ml-auto ${
+                      isV2 ? 'bg-[#242220] hover:bg-[#3D3834] text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    }`}
                   >
                     <Plus className="w-4 h-4" />
                     <span>Add New Book</span>
@@ -471,17 +498,17 @@ export default function AdminDashboard({
                 <div className="space-y-4">
                   {/* Category Filter Pills */}
                   <div className="flex items-center space-x-2 overflow-x-auto pb-2">
-                    <span className="text-xs text-slate-400 font-semibold mr-1 flex items-center">
+                    <span className={`text-xs font-semibold mr-1 flex items-center ${isV2 ? 'text-[#5C554E]' : 'text-slate-400'}`}>
                       <Layers className="w-3.5 h-3.5 mr-1" /> Category:
                     </span>
                     {['All', 'Acharya Prashant Foundation', 'Other Author'].map((cat) => (
                       <button
                         key={cat}
                         onClick={() => setSelectedMainCatFilter(cat)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border ${
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${
                           selectedMainCatFilter === cat
-                            ? 'bg-orange-500/20 text-orange-400 border-orange-500/50'
-                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                            ? isV2 ? 'bg-[#242220] text-white border-[#242220]' : 'bg-orange-500/20 text-orange-400 border-orange-500/50'
+                            : isV2 ? 'bg-[#EFEBE2] text-[#5C554E] border-[#A36B42]/20' : 'bg-slate-950 text-slate-400 border-slate-800'
                         }`}
                       >
                         {cat === 'All' ? 'All Books' : cat}
@@ -490,10 +517,12 @@ export default function AdminDashboard({
                   </div>
 
                   {/* Books Table / Cards */}
-                  <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-inner">
+                  <div className={`rounded-2xl border overflow-hidden shadow-sm ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20' : 'bg-slate-950 border-slate-800'}`}>
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs text-slate-300">
-                        <thead className="bg-slate-900 text-slate-400 font-bold border-b border-slate-800 uppercase text-[10px] tracking-wider">
+                      <table className={`w-full text-left text-xs ${isV2 ? 'text-[#242220]' : 'text-slate-300'}`}>
+                        <thead className={`font-bold border-b uppercase text-[10px] tracking-wider ${
+                          isV2 ? 'bg-[#242220] text-white border-[#A36B42]/30' : 'bg-slate-900 text-slate-400 border-slate-800'
+                        }`}>
                           <tr>
                             <th className="p-3.5">Book Title & Author</th>
                             <th className="p-3.5">🎯 Problem Addressed</th>
@@ -505,7 +534,7 @@ export default function AdminDashboard({
                             {userRole === 'Admin' && <th className="p-3.5 text-right">Actions</th>}
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/60">
+                        <tbody className={`divide-y ${isV2 ? 'divide-[#A36B42]/15' : 'divide-slate-800/60'}`}>
                           {filteredBooks.length === 0 ? (
                             <tr>
                               <td colSpan={8} className="p-8 text-center text-slate-500 text-xs">
@@ -514,62 +543,66 @@ export default function AdminDashboard({
                             </tr>
                           ) : (
                             filteredBooks.map((book) => (
-                              <tr key={book.id} className="hover:bg-slate-900/60 transition-colors">
+                              <tr key={book.id} className={isV2 ? 'hover:bg-[#F7F4EE]/80 transition-colors' : 'hover:bg-slate-900/60 transition-colors'}>
                                 <td className="p-3.5">
                                   <div className="flex items-center space-x-3">
                                     {book.coverImage ? (
                                       <img
                                         src={book.coverImage}
                                         alt={book.title}
-                                        className="w-9 h-11 object-cover rounded-lg bg-slate-800 border border-slate-700 shrink-0"
+                                        className="w-9 h-11 object-cover rounded-lg bg-slate-800 border border-[#A36B42]/20 shrink-0"
                                         onError={(e) => { e.target.style.display = 'none'; }}
                                       />
                                     ) : (
-                                      <div className="w-9 h-11 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-orange-400 shrink-0">
+                                      <div className={`w-9 h-11 rounded-lg border flex items-center justify-center shrink-0 ${
+                                        isV2 ? 'bg-[#F7F4EE] border-[#A36B42]/30 text-[#A36B42]' : 'bg-slate-800 border-slate-700 text-orange-400'
+                                      }`}>
                                         <BookOpen className="w-4 h-4" />
                                       </div>
                                     )}
                                     <div>
-                                      <div className="font-bold text-white">{book.title}</div>
-                                      <div className="text-[11px] text-amber-400">{book.author}</div>
+                                      <div className={`font-bold ${isV2 ? 'text-[#242220]' : 'text-white'}`}>{book.title}</div>
+                                      <div className={`text-[11px] ${isV2 ? 'text-[#A36B42]' : 'text-amber-400'}`}>{book.author}</div>
                                     </div>
                                   </div>
                                 </td>
                                 <td className="p-3.5">
-                                  <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                                  <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold border ${
+                                    isV2 ? 'bg-[#F7F4EE] text-[#242220] border-[#A36B42]/30' : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                                  }`}>
                                     🎯 {book.problemAddressedTag || 'Personal Growth'}
                                   </span>
                                 </td>
-                                <td className="p-3.5 font-bold text-slate-300">₹{book.mrp || 0}</td>
-                                <td className="p-3.5 font-semibold text-rose-400">₹{book.buyingCost || 0}</td>
-                                <td className="p-3.5 font-bold text-emerald-400">₹{book.sellingPrice || 0}</td>
+                                <td className="p-3.5 font-bold">₹{book.mrp || 0}</td>
+                                <td className="p-3.5 font-semibold text-rose-600 dark:text-rose-400">₹{book.buyingCost || 0}</td>
+                                <td className="p-3.5 font-bold text-emerald-600 dark:text-emerald-400">₹{book.sellingPrice || 0}</td>
                                 <td className="p-3.5">
                                   <span className={`px-2.5 py-1 rounded-lg font-extrabold text-[11px] ${
                                     book.availableStock > 10
-                                      ? 'bg-emerald-500/10 text-emerald-400'
+                                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
                                       : book.availableStock > 0
-                                      ? 'bg-amber-500/10 text-amber-400'
-                                      : 'bg-rose-500/10 text-rose-400'
+                                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                                      : 'bg-rose-500/10 text-rose-700 dark:text-rose-400'
                                   }`}>
                                     {book.availableStock} copies
                                   </span>
                                 </td>
-                                <td className="p-3.5 text-center font-bold text-slate-400">
+                                <td className="p-3.5 text-center font-bold text-slate-500">
                                   {book.language}
                                 </td>
                                 {userRole === 'Admin' && (
                                   <td className="p-3.5 text-right space-x-1">
                                     <button
                                       onClick={() => handleOpenEditModal(book)}
-                                      className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-all"
-                                      title="Edit details, MRP, cost, problem tag"
+                                      className="p-1.5 text-slate-500 hover:text-[#A36B42] hover:bg-[#F7F4EE] rounded-lg transition-all"
+                                      title="Edit details"
                                     >
                                       <Edit3 className="w-4 h-4" />
                                     </button>
                                     <button
                                       onClick={() => handleDeleteBook(book.id)}
-                                      className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-all"
-                                      title="Delete book entry"
+                                      className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-[#F7F4EE] rounded-lg transition-all"
+                                      title="Delete entry"
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </button>
@@ -585,18 +618,18 @@ export default function AdminDashboard({
                 </div>
               )}
 
-              {/* TAB 2: DATE-WISE SALES ENTRY */}
+              {/* TAB 2: SALES ENTRY */}
               {activeTab === 'sales' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Form to log date-wise sale */}
-                  <div className="lg:col-span-1 bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
-                    <h4 className="text-sm font-bold text-orange-400 flex items-center space-x-1.5">
-                      <Calendar className="w-4 h-4" />
+                  {/* Form */}
+                  <div className={`p-5 rounded-2xl border space-y-4 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20' : 'bg-slate-950 border-slate-800'}`}>
+                    <h4 className={`text-sm font-bold flex items-center space-x-1.5 ${isV2 ? 'text-[#242220]' : 'text-orange-400'}`}>
+                      <Calendar className="w-4 h-4 text-[#A36B42]" />
                       <span>Record Stall Sale Entry</span>
                     </h4>
 
                     {salesSuccess && (
-                      <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs p-3 rounded-xl font-bold flex items-center space-x-1.5">
+                      <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs p-3 rounded-xl font-bold flex items-center space-x-1.5">
                         <CheckCircle className="w-4 h-4 shrink-0" />
                         <span>{salesSuccess}</span>
                       </div>
@@ -604,23 +637,27 @@ export default function AdminDashboard({
 
                     <form onSubmit={handleRecordSalesSubmit} className="space-y-3 text-xs">
                       <div>
-                        <label className="block text-slate-300 font-bold mb-1">Sale Date *</label>
+                        <label className={`block font-bold mb-1 ${isV2 ? 'text-[#4A443E]' : 'text-slate-300'}`}>Sale Date *</label>
                         <input
                           type="date"
                           required
                           value={salesForm.date}
                           onChange={(e) => setSalesForm({ ...salesForm, date: e.target.value })}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                          className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                            isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border border-slate-700 text-white'
+                          }`}
                         />
                       </div>
 
                       <div>
-                        <label className="block text-slate-300 font-bold mb-1">Select Book *</label>
+                        <label className={`block font-bold mb-1 ${isV2 ? 'text-[#4A443E]' : 'text-slate-300'}`}>Select Book *</label>
                         <select
                           required
                           value={salesForm.bookId}
                           onChange={(e) => handleBookSelectForSales(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                          className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                            isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border border-slate-700 text-white'
+                          }`}
                         >
                           <option value="">-- Choose Book from Inventory --</option>
                           {books.map((b) => (
@@ -633,74 +670,84 @@ export default function AdminDashboard({
 
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-slate-300 font-bold mb-1">Qty Sold *</label>
+                          <label className={`block font-bold mb-1 ${isV2 ? 'text-[#4A443E]' : 'text-slate-300'}`}>Qty Sold *</label>
                           <input
                             type="number"
                             min="1"
                             required
                             value={salesForm.quantitySold}
                             onChange={(e) => setSalesForm({ ...salesForm, quantitySold: Math.max(1, parseInt(e.target.value) || 1) })}
-                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                            className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                              isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border border-slate-700 text-white'
+                            }`}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-slate-300 font-bold mb-1">Selling Cost (₹) *</label>
+                          <label className={`block font-bold mb-1 ${isV2 ? 'text-[#4A443E]' : 'text-slate-300'}`}>Selling Cost (₹) *</label>
                           <input
                             type="number"
                             min="0"
                             required
                             value={salesForm.sellingPriceOnDate}
                             onChange={(e) => setSalesForm({ ...salesForm, sellingPriceOnDate: parseFloat(e.target.value) || 0 })}
-                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                            className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                              isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border border-slate-700 text-white'
+                            }`}
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-slate-300 font-bold mb-1">Stall Location / Event</label>
+                        <label className={`block font-bold mb-1 ${isV2 ? 'text-[#4A443E]' : 'text-slate-300'}`}>Stall Location / Event</label>
                         <input
                           type="text"
                           placeholder="e.g. Sector 17 Stall, Panjab University"
                           value={salesForm.location}
                           onChange={(e) => setSalesForm({ ...salesForm, location: e.target.value })}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                          className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                            isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border border-slate-700 text-white'
+                          }`}
                         />
                       </div>
 
                       <div>
-                        <label className="block text-slate-300 font-bold mb-1">Recorded By</label>
+                        <label className={`block font-bold mb-1 ${isV2 ? 'text-[#4A443E]' : 'text-slate-300'}`}>Recorded By</label>
                         <input
                           type="text"
                           placeholder="Volunteer Name"
                           value={salesForm.recordedBy}
                           onChange={(e) => setSalesForm({ ...salesForm, recordedBy: e.target.value })}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                          className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                            isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border border-slate-700 text-white'
+                          }`}
                         />
                       </div>
 
                       <button
                         type="submit"
-                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg mt-2 transition-all"
+                        className={`w-full font-extrabold py-3 rounded-full shadow-md mt-2 transition-all ${
+                          isV2 ? 'bg-[#242220] hover:bg-[#3D3834] text-white' : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950'
+                        }`}
                       >
                         Save Sales Entry
                       </button>
                     </form>
                   </div>
 
-                  {/* Historical Sales Logs list */}
+                  {/* History */}
                   <div className="lg:col-span-2 space-y-3">
-                    <h4 className="text-sm font-bold text-slate-300 flex items-center justify-between">
+                    <h4 className="text-sm font-bold flex items-center justify-between">
                       <span>Sales Transaction History</span>
-                      <span className="text-xs text-orange-400 font-extrabold">
-                        Total Recorded: ₹{salesLogs.reduce((acc, log) => acc + (log.totalAmount || 0), 0)}
+                      <span className="text-xs font-extrabold text-[#A36B42]">
+                        Total Logged: ₹{salesLogs.reduce((acc, log) => acc + (log.totalAmount || 0), 0)}
                       </span>
                     </h4>
 
-                    <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
+                    <div className={`rounded-2xl border overflow-hidden ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20' : 'bg-slate-950 border-slate-800'}`}>
                       <div className="max-h-[420px] overflow-y-auto">
-                        <table className="w-full text-left text-xs text-slate-300">
-                          <thead className="bg-slate-900 text-slate-400 font-bold border-b border-slate-800 uppercase text-[10px]">
+                        <table className="w-full text-left text-xs">
+                          <thead className={`font-bold border-b uppercase text-[10px] ${isV2 ? 'bg-[#242220] text-white border-[#A36B42]/30' : 'bg-slate-900 text-slate-400 border-slate-800'}`}>
                             <tr>
                               <th className="p-3">Date</th>
                               <th className="p-3">Book Name</th>
@@ -710,7 +757,7 @@ export default function AdminDashboard({
                               <th className="p-3">Logged By</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-800/50">
+                          <tbody className={`divide-y ${isV2 ? 'divide-[#A36B42]/15 text-[#242220]' : 'divide-slate-800/50 text-slate-300'}`}>
                             {salesLogs.length === 0 ? (
                               <tr>
                                 <td colSpan={6} className="p-8 text-center text-slate-500">
@@ -719,13 +766,13 @@ export default function AdminDashboard({
                               </tr>
                             ) : (
                               salesLogs.map((log) => (
-                                <tr key={log.id} className="hover:bg-slate-900/60">
-                                  <td className="p-3 font-semibold text-amber-400 whitespace-nowrap">{log.date}</td>
-                                  <td className="p-3 font-bold text-white">{log.bookTitle}</td>
-                                  <td className="p-3 font-bold text-blue-400">{log.quantitySold}</td>
-                                  <td className="p-3 text-slate-300">₹{log.sellingPriceOnDate}</td>
-                                  <td className="p-3 font-extrabold text-emerald-400">₹{log.totalAmount}</td>
-                                  <td className="p-3 text-slate-400 text-[11px]">{log.recordedBy}</td>
+                                <tr key={log.id} className={isV2 ? 'hover:bg-[#F7F4EE]' : 'hover:bg-slate-900/60'}>
+                                  <td className="p-3 font-semibold text-[#A36B42] whitespace-nowrap">{log.date}</td>
+                                  <td className="p-3 font-bold">{log.bookTitle}</td>
+                                  <td className="p-3 font-bold text-blue-600">{log.quantitySold}</td>
+                                  <td className="p-3">₹{log.sellingPriceOnDate}</td>
+                                  <td className="p-3 font-extrabold text-emerald-600">₹{log.totalAmount}</td>
+                                  <td className="p-3 text-slate-500 text-[11px]">{log.recordedBy}</td>
                                 </tr>
                               ))
                             )}
@@ -739,22 +786,26 @@ export default function AdminDashboard({
 
               {/* TAB 3: BULK CSV IMPORT */}
               {activeTab === 'csv' && (
-                <div className="max-w-2xl mx-auto bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-5">
+                <div className={`max-w-2xl mx-auto p-6 rounded-2xl border space-y-5 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20' : 'bg-slate-950 border-slate-800'}`}>
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center space-x-3">
-                      <div className="p-2.5 bg-blue-500/20 text-blue-400 rounded-xl">
+                      <div className={`p-2.5 rounded-xl ${isV2 ? 'bg-[#F7F4EE] text-[#A36B42] border border-[#A36B42]/30' : 'bg-blue-500/20 text-blue-400'}`}>
                         <FileSpreadsheet className="w-6 h-6" />
                       </div>
                       <div>
-                        <h4 className="text-base font-bold text-white">Bulk CSV Book Import</h4>
-                        <p className="text-xs text-slate-400">Upload or paste CSV rows to instantly add books into Inventory database.</p>
+                        <h4 className="text-base font-bold">Bulk CSV Book Import</h4>
+                        <p className={`text-xs ${isV2 ? 'text-[#5C554E]' : 'text-slate-400'}`}>Upload or paste CSV rows to instantly add books into Inventory database.</p>
                       </div>
                     </div>
 
                     <button
                       type="button"
                       onClick={handleDownloadSampleCsv}
-                      className="flex items-center space-x-1.5 bg-slate-900 hover:bg-slate-800 text-orange-400 hover:text-orange-300 font-extrabold text-xs px-3.5 py-2 rounded-xl border border-orange-500/30 transition-all shadow-md"
+                      className={`flex items-center space-x-1.5 font-extrabold text-xs px-3.5 py-2 rounded-full border transition-all shadow-sm ${
+                        isV2
+                          ? 'bg-[#242220] hover:bg-[#3D3834] text-white border-[#A36B42]/30'
+                          : 'bg-slate-900 hover:bg-slate-800 text-orange-400 border-orange-500/30'
+                      }`}
                     >
                       <Download className="w-4 h-4" />
                       <span>Download Sample CSV Template</span>
@@ -763,29 +814,31 @@ export default function AdminDashboard({
 
                   {csvMessage && (
                     <div className={`p-3 rounded-xl text-xs font-bold ${
-                      csvMessage.includes('Successfully') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-300 border border-rose-500/30'
+                      csvMessage.includes('Successfully') ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/30'
                     }`}>
                       {csvMessage}
                     </div>
                   )}
 
-                  <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-800 space-y-2 text-xs">
-                    <span className="font-bold text-slate-300 block">📁 Choose .CSV File from Device:</span>
+                  <div className={`p-4 rounded-xl border space-y-2 text-xs ${isV2 ? 'bg-[#F7F4EE] border-[#A36B42]/30' : 'bg-slate-900/60 border-slate-800'}`}>
+                    <span className="font-bold block">📁 Choose .CSV File from Device:</span>
                     <input
                       type="file"
                       accept=".csv"
                       onChange={handleCsvFileUpload}
-                      className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                      className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#242220] file:text-white cursor-pointer"
                     />
                   </div>
 
                   <form onSubmit={handleCsvImportSubmit} className="space-y-4 text-xs">
                     <div>
-                      <label className="block text-slate-300 font-bold mb-1">Target Main Category *</label>
+                      <label className="block font-bold mb-1">Target Main Category *</label>
                       <select
                         value={csvTargetCat}
                         onChange={(e) => setCsvTargetCat(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-bold"
+                        className={`w-full rounded-xl px-3 py-2.5 text-xs font-bold outline-none ${
+                          isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border border-slate-700 text-white'
+                        }`}
                       >
                         <option value="Acharya Prashant Foundation">Acharya Prashant Foundation Books</option>
                         <option value="Other Author">Other Author Books</option>
@@ -793,19 +846,23 @@ export default function AdminDashboard({
                     </div>
 
                     <div>
-                      <label className="block text-slate-300 font-bold mb-1">CSV Text Data (Format: Title, Author, MRP, BuyingCost, SellingPrice, Stock, Language, MainCategory, SubCategory, ProblemAddressed, IsKidsBook)</label>
+                      <label className="block font-bold mb-1">CSV Text Data</label>
                       <textarea
                         rows={7}
-                        placeholder={`Example:\n"1984", "George Orwell", 199, 99.5, 99.5, 5, "English", "Other Author", "Mind & Character", "Mind Control & Freedom", "No"\n"स्त्री", "Acharya Prashant", 280, 100, 100, 10, "Hindi", "Acharya Prashant Foundation", "Self Discovery", "Relationships & Self-Respect", "No"`}
+                        placeholder={`Example:\n"1984", "George Orwell", 199, 99.5, 99.5, 5, "English", "Other Author", "Mind & Character", "Mind Control & Freedom", "No"`}
                         value={csvText}
                         onChange={(e) => setCsvText(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white font-mono text-xs resize-none"
+                        className={`w-full rounded-xl p-3 font-mono text-xs resize-none outline-none ${
+                          isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border border-slate-700 text-white'
+                        }`}
                       />
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 rounded-xl shadow-lg transition-all"
+                      className={`w-full font-extrabold py-3 rounded-full shadow-md transition-all ${
+                        isV2 ? 'bg-[#242220] hover:bg-[#3D3834] text-white' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                      }`}
                     >
                       Import CSV Books into Inventory Database
                     </button>
@@ -816,27 +873,27 @@ export default function AdminDashboard({
               {/* TAB 4: STALL REQUESTS */}
               {activeTab === 'requests' && (
                 <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-300">Institutional Bookstall Requests</h4>
+                  <h4 className="text-sm font-bold">Institutional Bookstall Requests</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {bookings.length === 0 ? (
-                      <div className="col-span-2 p-8 text-center text-slate-500 bg-slate-950 rounded-2xl border border-slate-800">
+                      <div className={`col-span-2 p-8 text-center text-slate-500 rounded-2xl border ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20' : 'bg-slate-950 border-slate-800'}`}>
                         No stall requests submitted yet.
                       </div>
                     ) : (
                       bookings.map((b) => (
-                        <div key={b.id} className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+                        <div key={b.id} className={`p-4 rounded-2xl border space-y-2 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20' : 'bg-slate-950 border-slate-800'}`}>
                           <div className="flex justify-between items-start">
                             <div>
-                              <h5 className="font-bold text-white">{b.institutionName}</h5>
-                              <p className="text-xs text-slate-400">{b.contactPerson} • {b.phone}</p>
+                              <h5 className="font-bold">{b.institutionName}</h5>
+                              <p className="text-xs text-slate-500">{b.contactPerson} • {b.phone}</p>
                             </div>
                             <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                              b.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                              b.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400' : 'bg-amber-500/20 text-amber-700 dark:text-amber-400'
                             }`}>
                               {b.status || 'Pending'}
                             </span>
                           </div>
-                          <div className="text-xs text-slate-300 space-y-1 pt-1 border-t border-slate-900">
+                          <div className="text-xs space-y-1 pt-1 border-t border-[#A36B42]/15">
                             <div><strong>Location:</strong> {b.location}</div>
                             <div><strong>Target Date:</strong> {b.eventDate}</div>
                             <div><strong>Expected Attendees:</strong> {b.expectedAttendees}</div>
@@ -857,13 +914,15 @@ export default function AdminDashboard({
       {/* Add / Edit Book Modal */}
       {showBookModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-xl bg-slate-900 rounded-3xl border border-slate-800 p-6 space-y-4 shadow-2xl my-8">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h4 className="text-base font-bold text-orange-400 flex items-center space-x-2">
-                <Edit3 className="w-5 h-5" />
+          <div className={`relative w-full max-w-xl rounded-3xl border p-6 space-y-4 shadow-2xl my-8 ${
+            isV2 ? 'bg-[#F7F4EE] border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border-slate-800 text-white'
+          }`}>
+            <div className={`flex justify-between items-center border-b pb-3 ${isV2 ? 'border-[#A36B42]/20' : 'border-slate-800'}`}>
+              <h4 className={`text-base font-bold flex items-center space-x-2 ${isV2 ? 'font-serif-editorial text-[#242220]' : 'text-orange-400'}`}>
+                <Edit3 className="w-5 h-5 text-[#A36B42]" />
                 <span>{editingBookId ? 'Edit Book Details & Pricing' : 'Add New Book to Inventory'}</span>
               </h4>
-              <button onClick={() => setShowBookModal(false)} className="text-slate-400 hover:text-white p-1">
+              <button onClick={() => setShowBookModal(false)} className="text-slate-400 hover:text-slate-700 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -871,11 +930,13 @@ export default function AdminDashboard({
             <form onSubmit={handleSaveBook} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">Main Category *</label>
+                  <label className="block font-bold mb-1">Main Category *</label>
                   <select
                     value={bookForm.mainCategory}
                     onChange={(e) => setBookForm({ ...bookForm, mainCategory: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                    className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                      isV2 ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-950 border border-slate-700 text-white'
+                    }`}
                   >
                     <option value="Acharya Prashant Foundation">Acharya Prashant Foundation Books</option>
                     <option value="Other Author">Other Author Books</option>
@@ -883,11 +944,13 @@ export default function AdminDashboard({
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">Sub Category / Genre *</label>
+                  <label className="block font-bold mb-1">Sub Category / Genre *</label>
                   <select
                     value={bookForm.category}
                     onChange={(e) => setBookForm({ ...bookForm, category: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                    className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                      isV2 ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-950 border border-slate-700 text-white'
+                    }`}
                   >
                     <option value="Kids Wisdom">Kids Wisdom</option>
                     <option value="Mind & Character">Mind & Character</option>
@@ -898,36 +961,42 @@ export default function AdminDashboard({
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">Book Title *</label>
+                <label className="block font-bold mb-1">Book Title *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. 1984 or Stree"
                   value={bookForm.title}
                   onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                  className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                    isV2 ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-950 border border-slate-700 text-white'
+                  }`}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">Author Name *</label>
+                  <label className="block font-bold mb-1">Author Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="Author"
                     value={bookForm.author}
                     onChange={(e) => setBookForm({ ...bookForm, author: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                    className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                      isV2 ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-950 border border-slate-700 text-white'
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">Language Tag</label>
+                  <label className="block font-bold mb-1">Language Tag</label>
                   <select
                     value={bookForm.language}
                     onChange={(e) => setBookForm({ ...bookForm, language: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-bold"
+                    className={`w-full rounded-xl px-3 py-2.5 text-xs font-bold outline-none ${
+                      isV2 ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-950 border border-slate-700 text-white'
+                    }`}
                   >
                     <option value="Hindi">Hindi</option>
                     <option value="English">English</option>
@@ -938,93 +1007,107 @@ export default function AdminDashboard({
 
               {/* Problem Addressed Input */}
               <div>
-                <label className="block text-slate-300 font-bold mb-1">🎯 Problem Addressed Tag *</label>
+                <label className="block font-bold mb-1">🎯 Problem Addressed Tag *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Overcoming Fear & Stress, Student Focus, Relationships"
                   value={bookForm.problemAddressedTag}
                   onChange={(e) => setBookForm({ ...bookForm, problemAddressedTag: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                  className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                    isV2 ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-950 border border-slate-700 text-white'
+                  }`}
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800">
+              <div className={`grid grid-cols-3 gap-3 p-3 rounded-xl border ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20' : 'bg-slate-950 border-slate-800'}`}>
                 <div>
-                  <label className="block text-slate-400 font-bold mb-1">MRP (₹) *</label>
+                  <label className="block font-bold mb-1 text-slate-500">MRP (₹) *</label>
                   <input
                     type="number"
                     min="0"
                     required
                     value={bookForm.mrp}
                     onChange={(e) => setBookForm({ ...bookForm, mrp: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold"
+                    className={`w-full rounded-xl px-3 py-2 text-xs font-bold outline-none ${
+                      isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border border-slate-700 text-white'
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-rose-400 font-bold mb-1">Actual Buying Cost (₹) *</label>
+                  <label className="block font-bold mb-1 text-rose-600 dark:text-rose-400">Actual Buying Cost (₹) *</label>
                   <input
                     type="number"
                     min="0"
                     required
                     value={bookForm.buyingCost}
                     onChange={(e) => setBookForm({ ...bookForm, buyingCost: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold"
+                    className={`w-full rounded-xl px-3 py-2 text-xs font-bold outline-none ${
+                      isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border border-slate-700 text-white'
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-emerald-400 font-bold mb-1">Selling Price (₹) *</label>
+                  <label className="block font-bold mb-1 text-emerald-600 dark:text-emerald-400">Selling Price (₹) *</label>
                   <input
                     type="number"
                     min="0"
                     required
                     value={bookForm.sellingPrice}
                     onChange={(e) => setBookForm({ ...bookForm, sellingPrice: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold"
+                    className={`w-full rounded-xl px-3 py-2 text-xs font-bold outline-none ${
+                      isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border border-slate-700 text-white'
+                    }`}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">Available Stock Count *</label>
+                  <label className="block font-bold mb-1">Available Stock Count *</label>
                   <input
                     type="number"
                     min="0"
                     required
                     value={bookForm.availableStock}
                     onChange={(e) => setBookForm({ ...bookForm, availableStock: parseInt(e.target.value) || 0 })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-bold"
+                    className={`w-full rounded-xl px-3 py-2.5 text-xs font-bold outline-none ${
+                      isV2 ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-950 border border-slate-700 text-white'
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">Cover Image Path / URL</label>
+                  <label className="block font-bold mb-1">Cover Image Path / URL</label>
                   <input
                     type="text"
                     placeholder="/assets/books/book_images/..."
                     value={bookForm.coverImage}
                     onChange={(e) => setBookForm({ ...bookForm, coverImage: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                    className={`w-full rounded-xl px-3 py-2.5 text-xs outline-none ${
+                      isV2 ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-950 border border-slate-700 text-white'
+                    }`}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">Book Summary & Description</label>
+                <label className="block font-bold mb-1">Book Summary & Description</label>
                 <textarea
                   rows={2}
                   placeholder="Summary of book message..."
                   value={bookForm.description}
                   onChange={(e) => setBookForm({ ...bookForm, description: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white resize-none"
+                  className={`w-full rounded-xl p-2.5 text-xs resize-none outline-none ${
+                    isV2 ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220]' : 'bg-slate-950 border border-slate-700 text-white'
+                  }`}
                 />
               </div>
 
               <div className="pt-1">
-                <label className="flex items-center space-x-2 text-slate-200 font-bold cursor-pointer bg-pink-500/10 p-3 rounded-xl border border-pink-500/30">
+                <label className="flex items-center space-x-2 font-bold cursor-pointer p-3 rounded-xl border bg-pink-500/10 border-pink-500/30">
                   <input
                     type="checkbox"
                     checked={bookForm.isKidsSection}
@@ -1039,13 +1122,17 @@ export default function AdminDashboard({
                 <button
                   type="button"
                   onClick={() => setShowBookModal(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300"
+                  className={`px-4 py-2.5 rounded-full text-xs font-bold ${
+                    isV2 ? 'bg-[#EFEBE2] text-[#5C554E]' : 'bg-slate-800 text-slate-300'
+                  }`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl font-extrabold bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md"
+                  className={`px-5 py-2.5 rounded-full font-extrabold text-xs shadow-md ${
+                    isV2 ? 'bg-[#242220] hover:bg-[#3D3834] text-white' : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950'
+                  }`}
                 >
                   Save Book Details
                 </button>

@@ -44,7 +44,7 @@ export default function Navbar({
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                  Prabodhanam
+                  Ekatva Foundation
                 </span>
                 <span className="bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400 text-xs font-semibold px-2 py-0.5 rounded-full border border-orange-500/30">
                   Tricity
