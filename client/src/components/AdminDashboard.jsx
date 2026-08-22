@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ShieldCheck, Plus, Trash2, Edit3, CheckCircle, X, LogOut, BookOpen, Clock, Building2, User, Phone, Mail, Sparkles, Upload, Calendar, DollarSign, Tag, CheckSquare, Layers, FileSpreadsheet, Smartphone, ShoppingBag, Download, Settings, Globe, Share2, ToggleLeft, ToggleRight
+  ShieldCheck, Plus, Trash2, Edit3, CheckCircle, X, LogOut, BookOpen, Clock, Building2, User, Phone, Mail, Sparkles, Upload, Calendar, DollarSign, Tag, CheckSquare, Layers, FileSpreadsheet, Smartphone, ShoppingBag, Download, Settings, Globe, Share2, ToggleLeft, ToggleRight, Type
 } from 'lucide-react';
 import { loginAdmin, createBookApi, updateBookApi, deleteBookApi, recordSalesEntryApi, fetchSalesLogsApi, fetchSettingsApi, updateSettingsApi } from '../services/api';
 
@@ -16,11 +16,12 @@ export default function AdminDashboard({
   bookings,
   setBookings,
   siteVersion = 'v2',
+  setSiteVersion,
   siteSettings,
   setSiteSettings,
   onSettingsUpdated,
 }) {
-  const [activeTab, setActiveTab] = useState('books'); // 'books' | 'sales' | 'csv' | 'requests' | 'settings'
+  const [activeTab, setActiveTab] = useState('books'); // 'books' | 'sales' | 'settings' | 'csv' | 'requests'
   const [selectedMainCatFilter, setSelectedMainCatFilter] = useState('All');
   
   // Auth state
@@ -31,6 +32,11 @@ export default function AdminDashboard({
   // Settings form state
   const [localSettings, setLocalSettings] = useState({
     catalogEnabled: false,
+    showVersionToggle: false,
+    logoConfig: {
+      title: 'Ekatva Foundation',
+      subtitle: 'Clarity of Mind • Freedom of Being',
+    },
     contactInfo: {
       phone: '+91 98765 43210',
       email: 'contact@ekatvafoundation.org',
@@ -44,7 +50,13 @@ export default function AdminDashboard({
       badge: 'Tricity Campus & PTM Literature Movement',
       title: 'Transforming Lives Through Higher Wisdom Literature',
       subtitle: 'Bringing timeless clarity, Vedanta, and youth character-building literature to schools, universities, and book stalls across Chandigarh, Mohali, and Panchkula.',
-      imageUrl: '/assets/banner.jpg',
+      imageUrl: '/assets/cgc1.jpg',
+      bannerImages: [
+        '/assets/cgc1.jpg',
+        '/assets/cgc2.jpg',
+        '/assets/cu1.jpg',
+        '/assets/ekatva_v3_logo_1.jpg',
+      ],
     },
     eventsConfig: {
       bannerImage: '/assets/cgc1.jpg',
@@ -52,6 +64,8 @@ export default function AdminDashboard({
       description: 'Moments of student engagement, book fairs, and PTM bookstalls across Tricity educational institutions.',
     },
   });
+
+  const [slideshowText, setSlideshowText] = useState('');
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsSuccess, setSettingsSuccess] = useState('');
 
@@ -103,6 +117,9 @@ export default function AdminDashboard({
       fetchSettingsApi().then((data) => {
         if (data) {
           setLocalSettings(data);
+          if (data.homeBanner?.bannerImages) {
+            setSlideshowText(data.homeBanner.bannerImages.join('\n'));
+          }
           if (setSiteSettings) setSiteSettings(data);
         }
       });
@@ -139,13 +156,28 @@ export default function AdminDashboard({
     e.preventDefault();
     setSettingsSaving(true);
     setSettingsSuccess('');
+
+    // Parse slideshow images text area
+    const parsedImages = slideshowText
+      .split('\n')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    const updatedSettings = {
+      ...localSettings,
+      homeBanner: {
+        ...localSettings.homeBanner,
+        bannerImages: parsedImages.length > 0 ? parsedImages : localSettings.homeBanner.bannerImages,
+      },
+    };
+
     try {
-      const updated = await updateSettingsApi(localSettings);
+      const updated = await updateSettingsApi(updatedSettings);
       if (updated) {
         setLocalSettings(updated);
         if (setSiteSettings) setSiteSettings(updated);
         if (onSettingsUpdated) onSettingsUpdated(updated);
-        setSettingsSuccess('✅ Site controls & dynamic settings updated successfully!');
+        setSettingsSuccess('✅ Site controls, logo text & slideshow images saved successfully!');
         setTimeout(() => setSettingsSuccess(''), 3500);
       }
     } catch (err) {
@@ -158,6 +190,22 @@ export default function AdminDashboard({
   const handleToggleCatalog = async () => {
     const nextState = !localSettings.catalogEnabled;
     const updatedLocal = { ...localSettings, catalogEnabled: nextState };
+    setLocalSettings(updatedLocal);
+    try {
+      const updated = await updateSettingsApi(updatedLocal);
+      if (updated) {
+        setLocalSettings(updated);
+        if (setSiteSettings) setSiteSettings(updated);
+        if (onSettingsUpdated) onSettingsUpdated(updated);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleToggleShowVersion = async () => {
+    const nextState = !localSettings.showVersionToggle;
+    const updatedLocal = { ...localSettings, showVersionToggle: nextState };
     setLocalSettings(updatedLocal);
     try {
       const updated = await updateSettingsApi(updatedLocal);
@@ -363,15 +411,30 @@ export default function AdminDashboard({
             </div>
             <div>
               <h3 className={`text-base font-extrabold flex items-center space-x-2 ${isV2 ? 'font-serif-editorial text-[#242220]' : 'text-white'}`}>
-                <span>Ekatva Foundation Bookstall Inventory Portal</span>
+                <span>Ekatva Foundation Bookstall Admin Portal</span>
               </h3>
               <p className={`text-xs ${isV2 ? 'text-[#5C554E]' : 'text-slate-400'}`}>
-                Books Inventory, MRP/Cost Management, Feature Toggles & Sales Logger
+                Inventory, Dynamic Branding, Slideshow Images & Site Feature Controls
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
+            {/* Admin Direct Theme Switcher Button */}
+            {setSiteVersion && (
+              <button
+                type="button"
+                onClick={() => setSiteVersion(siteVersion === 'v2' ? 'v1' : 'v2')}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                  isV2 ? 'bg-[#242220] text-white border-[#A36B42]/40' : 'bg-orange-500 text-slate-950 border-orange-400'
+                }`}
+                title="Switch Active Website Design Version"
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Theme: <strong>{siteVersion === 'v2' ? 'v2 Editorial' : 'v1 Modern'}</strong></span>
+              </button>
+            )}
+
             {isAdmin && (
               <button
                 onClick={() => {
@@ -504,7 +567,7 @@ export default function AdminDashboard({
                       }`}
                     >
                       <Settings className="w-4 h-4" />
-                      <span>⚙️ Site Controls & Settings</span>
+                      <span>⚙️ Site Controls & Dynamic Settings</span>
                     </button>
                   )}
 
@@ -560,46 +623,175 @@ export default function AdminDashboard({
                     </div>
                   )}
 
-                  {/* 1. BOOKS CATALOG FEATURE TOGGLE CARD */}
-                  <div className={`p-6 rounded-2xl border space-y-3 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30' : 'bg-slate-950 border-slate-800'}`}>
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                      <div>
-                        <h4 className="text-base font-extrabold flex items-center space-x-2">
-                          <BookOpen className="w-5 h-5 text-[#A36B42]" />
-                          <span>Public Books Catalog Feature Control</span>
-                        </h4>
-                        <p className={`text-xs ${isV2 ? 'text-[#5C554E]' : 'text-slate-400'}`}>
-                          Enable or disable the Books Catalog section for public visitors on the website.
-                        </p>
-                      </div>
+                  {/* 1. FEATURE TOGGLES & THEME SWITCHER CARD */}
+                  <div className={`p-6 rounded-2xl border space-y-4 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30' : 'bg-slate-950 border-slate-800'}`}>
+                    <h4 className="text-base font-extrabold flex items-center space-x-2">
+                      <Settings className="w-5 h-5 text-[#A36B42]" />
+                      <span>Website Feature Controls & Theme Switcher</span>
+                    </h4>
 
-                      <div className="flex items-center space-x-3">
-                        <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                          localSettings.catalogEnabled
-                            ? 'bg-emerald-500/15 text-emerald-700 border border-emerald-500/30'
-                            : 'bg-amber-500/15 text-amber-700 border border-amber-500/30'
-                        }`}>
-                          {localSettings.catalogEnabled ? '🟢 Catalog ENABLED (Visible to Public)' : '🔴 Catalog DISABLED ("Updating Soon" Notice Active)'}
-                        </span>
-
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Catalog Toggle */}
+                      <div className={`p-4 rounded-xl border flex items-center justify-between ${isV2 ? 'bg-[#F7F4EE] border-[#A36B42]/20' : 'bg-slate-900 border-slate-800'}`}>
+                        <div>
+                          <span className="font-bold block text-xs">Public Books Catalog</span>
+                          <span className="text-[11px] text-slate-500">
+                            {localSettings.catalogEnabled ? '🟢 Visible on website' : '🔴 Hidden ("Updating Soon" active)'}
+                          </span>
+                        </div>
                         <button
                           type="button"
                           onClick={handleToggleCatalog}
-                          className={`flex items-center space-x-2 px-4 py-2 rounded-full font-bold text-xs shadow-sm transition-all ${
-                            localSettings.catalogEnabled
-                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                              : 'bg-amber-600 hover:bg-amber-700 text-white'
+                          className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-full font-bold text-xs shadow-sm transition-all ${
+                            localSettings.catalogEnabled ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'
                           }`}
                         >
-                          {localSettings.catalogEnabled ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
-                          <span>{localSettings.catalogEnabled ? 'Switch Catalog OFF' : 'Switch Catalog ON'}</span>
+                          {localSettings.catalogEnabled ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                          <span>{localSettings.catalogEnabled ? 'Catalog ON' : 'Catalog OFF'}</span>
+                        </button>
+                      </div>
+
+                      {/* Version Toggle Pill Visibility */}
+                      <div className={`p-4 rounded-xl border flex items-center justify-between ${isV2 ? 'bg-[#F7F4EE] border-[#A36B42]/20' : 'bg-slate-900 border-slate-800'}`}>
+                        <div>
+                          <span className="font-bold block text-xs">Show Version Button on Header</span>
+                          <span className="text-[11px] text-slate-500">
+                            {localSettings.showVersionToggle ? '🟢 Shown to public' : '🔴 Hidden from public visitors'}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleToggleShowVersion}
+                          className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-full font-bold text-xs shadow-sm transition-all ${
+                            localSettings.showVersionToggle ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-white'
+                          }`}
+                        >
+                          {localSettings.showVersionToggle ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                          <span>{localSettings.showVersionToggle ? 'Button Visible' : 'Button Hidden'}</span>
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  {/* 2. DYNAMIC CONTACT & SOCIAL MEDIA SETTINGS */}
                   <form onSubmit={handleSaveSettingsSubmit} className="space-y-6">
+                    {/* 2. DYNAMIC LOGO & BRANDING CONFIG CARD */}
+                    <div className={`p-6 rounded-2xl border space-y-4 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30' : 'bg-slate-950 border-slate-800'}`}>
+                      <h4 className="text-sm font-extrabold flex items-center space-x-2">
+                        <Type className="w-4 h-4 text-[#A36B42]" />
+                        <span>Dynamic Header Logo Title & Tagline</span>
+                      </h4>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <label className="block font-bold mb-1">Navbar Logo Main Title *</label>
+                          <input
+                            type="text"
+                            required
+                            value={localSettings.logoConfig.title}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              logoConfig: { ...localSettings.logoConfig, title: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                            placeholder="e.g. Ekatva Foundation"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold mb-1">Navbar Logo Subtitle / Tagline *</label>
+                          <input
+                            type="text"
+                            required
+                            value={localSettings.logoConfig.subtitle}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              logoConfig: { ...localSettings.logoConfig, subtitle: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                            placeholder="e.g. Clarity of Mind • Freedom of Being"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3. HOME HERO BANNER & ANIMATED SLIDESHOW CONFIG CARD */}
+                    <div className={`p-6 rounded-2xl border space-y-4 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30' : 'bg-slate-950 border-slate-800'}`}>
+                      <h4 className="text-sm font-extrabold flex items-center space-x-2">
+                        <Globe className="w-4 h-4 text-[#A36B42]" />
+                        <span>Dynamic Home Hero Banner & Animated Slideshow Images</span>
+                      </h4>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <label className="block font-bold mb-1">Hero Badge Text</label>
+                          <input
+                            type="text"
+                            value={localSettings.homeBanner.badge}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              homeBanner: { ...localSettings.homeBanner, badge: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold mb-1">Primary Banner Cover Image URL</label>
+                          <input
+                            type="text"
+                            value={localSettings.homeBanner.imageUrl}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              homeBanner: { ...localSettings.homeBanner, imageUrl: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block font-bold mb-1">Hero Headline Title</label>
+                          <input
+                            type="text"
+                            value={localSettings.homeBanner.title}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              homeBanner: { ...localSettings.homeBanner, title: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block font-bold mb-1">Hero Subtitle</label>
+                          <textarea
+                            rows={2}
+                            value={localSettings.homeBanner.subtitle}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              homeBanner: { ...localSettings.homeBanner, subtitle: e.target.value }
+                            })}
+                            className={`w-full rounded-xl p-2.5 outline-none resize-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        {/* Animated Slideshow Images Multiline */}
+                        <div className="md:col-span-2 space-y-1">
+                          <label className="block font-bold">🖼️ Animated Slideshow Image URLs (One URL per line)</label>
+                          <p className="text-[11px] text-slate-500">
+                            The hero banner right frame will automatically cycle through these images with smooth fade-in animations every 3.5 seconds!
+                          </p>
+                          <textarea
+                            rows={4}
+                            value={slideshowText}
+                            onChange={(e) => setSlideshowText(e.target.value)}
+                            placeholder="/assets/cgc1.jpg&#10;/assets/cgc2.jpg&#10;/assets/cu1.jpg"
+                            className={`w-full rounded-xl p-3 font-mono text-xs outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 4. CONTACT & SOCIAL MEDIA LINKS CARD */}
                     <div className={`p-6 rounded-2xl border space-y-4 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30' : 'bg-slate-950 border-slate-800'}`}>
                       <h4 className="text-sm font-extrabold flex items-center space-x-2">
                         <Phone className="w-4 h-4 text-[#A36B42]" />
@@ -702,68 +894,6 @@ export default function AdminDashboard({
                       </div>
                     </div>
 
-                    {/* 3. HOME HERO BANNER CONFIG */}
-                    <div className={`p-6 rounded-2xl border space-y-4 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30' : 'bg-slate-950 border-slate-800'}`}>
-                      <h4 className="text-sm font-extrabold flex items-center space-x-2">
-                        <Globe className="w-4 h-4 text-[#A36B42]" />
-                        <span>Dynamic Home Hero Banner Config</span>
-                      </h4>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                        <div>
-                          <label className="block font-bold mb-1">Hero Badge Text</label>
-                          <input
-                            type="text"
-                            value={localSettings.homeBanner.badge}
-                            onChange={(e) => setLocalSettings({
-                              ...localSettings,
-                              homeBanner: { ...localSettings.homeBanner, badge: e.target.value }
-                            })}
-                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block font-bold mb-1">Home Banner Image URL</label>
-                          <input
-                            type="text"
-                            value={localSettings.homeBanner.imageUrl}
-                            onChange={(e) => setLocalSettings({
-                              ...localSettings,
-                              homeBanner: { ...localSettings.homeBanner, imageUrl: e.target.value }
-                            })}
-                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
-                          />
-                        </div>
-
-                        <div className="md:col-span-2">
-                          <label className="block font-bold mb-1">Hero Headline Title</label>
-                          <input
-                            type="text"
-                            value={localSettings.homeBanner.title}
-                            onChange={(e) => setLocalSettings({
-                              ...localSettings,
-                              homeBanner: { ...localSettings.homeBanner, title: e.target.value }
-                            })}
-                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
-                          />
-                        </div>
-
-                        <div className="md:col-span-2">
-                          <label className="block font-bold mb-1">Hero Subtitle</label>
-                          <textarea
-                            rows={2}
-                            value={localSettings.homeBanner.subtitle}
-                            onChange={(e) => setLocalSettings({
-                              ...localSettings,
-                              homeBanner: { ...localSettings.homeBanner, subtitle: e.target.value }
-                            })}
-                            className={`w-full rounded-xl p-2.5 outline-none resize-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
                     <button
                       type="submit"
                       disabled={settingsSaving}
@@ -771,7 +901,7 @@ export default function AdminDashboard({
                         isV2 ? 'bg-[#242220] hover:bg-[#3D3834] text-white' : 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950'
                       }`}
                     >
-                      {settingsSaving ? 'Saving Site Settings...' : 'Save All Site Settings & Feature Controls'}
+                      {settingsSaving ? 'Saving Site Settings...' : 'Save All Site Settings & Dynamic Logo Branding'}
                     </button>
                   </form>
                 </div>

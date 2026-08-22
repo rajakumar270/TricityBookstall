@@ -120,7 +120,7 @@ const initialEventsSeed = [
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'kids' | 'books' | 'events'
+  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'kids' | 'books' | 'events' | 'gallery'
   const [siteVersion, setSiteVersion] = useState('v2'); // 'v2' (Editorial Parchment) | 'v1' (Modern)
   const [theme, setTheme] = useState('dark');
 
@@ -185,6 +185,7 @@ export default function App() {
           isAdmin={isAdmin}
           siteVersion={siteVersion}
           setSiteVersion={setSiteVersion}
+          siteSettings={siteSettings}
         />
 
         {/* V2 Main Sections */}
@@ -195,6 +196,7 @@ export default function App() {
                 onExploreBooks={() => setActiveTab('books')}
                 onHostStall={() => setHostModalOpen(true)}
                 onExploreEvents={() => setActiveTab('events')}
+                siteSettings={siteSettings}
               />
 
               <WhatWeDoV2 />
@@ -234,7 +236,7 @@ export default function App() {
             </div>
           )}
 
-          {activeTab === 'events' && (
+          {(activeTab === 'events' || activeTab === 'gallery') && (
             <div className="py-8 bg-[#F7F4EE]">
               <EventsGallery
                 events={events}
@@ -289,6 +291,7 @@ export default function App() {
           bookings={bookings}
           setBookings={setBookings}
           siteVersion={siteVersion}
+          setSiteVersion={setSiteVersion}
           siteSettings={siteSettings}
           setSiteSettings={setSiteSettings}
         />
@@ -301,16 +304,18 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300">
 
-      {/* Version Banner for V1 */}
-      <div className="bg-[#242220] text-amber-300 text-xs py-1.5 px-4 text-center font-bold flex items-center justify-center space-x-2">
-        <span>Viewing V1 Modern Theme</span>
-        <button
-          onClick={() => setSiteVersion('v2')}
-          className="bg-orange-500 hover:bg-orange-600 text-white text-[10px] px-2.5 py-0.5 rounded-full font-extrabold ml-2"
-        >
-          Switch to V2 Editorial Parchment Design →
-        </button>
-      </div>
+      {/* Version Banner for V1 (Only shown if showVersionToggle is enabled in Admin Settings) */}
+      {siteSettings?.showVersionToggle && (
+        <div className="bg-[#242220] text-amber-300 text-xs py-1.5 px-4 text-center font-bold flex items-center justify-center space-x-2">
+          <span>Viewing V1 Modern Theme</span>
+          <button
+            onClick={() => setSiteVersion('v2')}
+            className="bg-orange-500 hover:bg-orange-600 text-white text-[10px] px-2.5 py-0.5 rounded-full font-extrabold ml-2"
+          >
+            Switch to V2 Editorial Parchment Design →
+          </button>
+        </div>
+      )}
 
       {/* Header Navigation */}
       <Navbar
@@ -322,6 +327,7 @@ export default function App() {
         isAdmin={isAdmin}
         theme={theme}
         toggleTheme={toggleTheme}
+        siteSettings={siteSettings}
       />
 
       {/* Main Content Sections */}
@@ -331,6 +337,7 @@ export default function App() {
             <Hero
               onExploreBooks={() => setActiveTab('books')}
               onHostStall={() => setHostModalOpen(true)}
+              siteSettings={siteSettings}
             />
 
             <KidsSection
@@ -369,7 +376,7 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'events' && (
+        {(activeTab === 'events' || activeTab === 'gallery') && (
           <div className="py-8">
             <EventsGallery
               events={events}
@@ -424,6 +431,7 @@ export default function App() {
         bookings={bookings}
         setBookings={setBookings}
         siteVersion={siteVersion}
+        setSiteVersion={setSiteVersion}
         siteSettings={siteSettings}
         setSiteSettings={setSiteSettings}
       />

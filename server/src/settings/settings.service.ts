@@ -1,8 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DatabaseService } from '../database/mysql.service';
 
 export interface SiteSettings {
   catalogEnabled: boolean;
+  showVersionToggle: boolean;
+  logoConfig: {
+    title: string;
+    subtitle: string;
+  };
   contactInfo: {
     phone: string;
     email: string;
@@ -17,6 +22,7 @@ export interface SiteSettings {
     title: string;
     subtitle: string;
     imageUrl: string;
+    bannerImages: string[];
   };
   eventsConfig: {
     bannerImage: string;
@@ -26,7 +32,12 @@ export interface SiteSettings {
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  catalogEnabled: false, // Default OFF as requested by user until enabled from Admin panel
+  catalogEnabled: false,
+  showVersionToggle: false, // Default hidden on public site as requested by user
+  logoConfig: {
+    title: 'Ekatva Foundation',
+    subtitle: 'Clarity of Mind • Freedom of Being',
+  },
   contactInfo: {
     phone: '+91 98765 43210',
     email: 'contact@ekatvafoundation.org',
@@ -40,7 +51,13 @@ const DEFAULT_SETTINGS: SiteSettings = {
     badge: 'Tricity Campus & PTM Literature Movement',
     title: 'Transforming Lives Through Higher Wisdom Literature',
     subtitle: 'Bringing timeless clarity, Vedanta, and youth character-building literature to schools, universities, and book stalls across Chandigarh, Mohali, and Panchkula.',
-    imageUrl: '/assets/banner.jpg',
+    imageUrl: '/assets/cgc1.jpg',
+    bannerImages: [
+      '/assets/cgc1.jpg',
+      '/assets/cgc2.jpg',
+      '/assets/cu1.jpg',
+      '/assets/ekatva_v3_logo_1.jpg',
+    ],
   },
   eventsConfig: {
     bannerImage: '/assets/cgc1.jpg',
@@ -50,8 +67,22 @@ const DEFAULT_SETTINGS: SiteSettings = {
 };
 
 @Injectable()
-export class SettingsService {
+export class SettingsService implements OnModuleInit {
   constructor(private readonly db: DatabaseService) {}
+
+  async onModuleInit() {
+    try {
+      await this.db.query(`
+        CREATE TABLE IF NOT EXISTS site_settings (
+          key_name VARCHAR(100) PRIMARY KEY,
+          value_json TEXT NOT NULL,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        );
+      `);
+    } catch (err) {
+      console.warn('Could not auto-create site_settings table:', err);
+    }
+  }
 
   async getAllSettings(): Promise<SiteSettings> {
     try {
@@ -63,6 +94,10 @@ export class SettingsService {
           const parsed = JSON.parse(row.value_json);
           if (row.key_name === 'catalog_enabled') {
             settings.catalogEnabled = Boolean(parsed);
+          } else if (row.key_name === 'show_version_toggle') {
+            settings.showVersionToggle = Boolean(parsed);
+          } else if (row.key_name === 'logo_config') {
+            settings.logoConfig = { ...settings.logoConfig, ...parsed };
           } else if (row.key_name === 'contact_info') {
             settings.contactInfo = { ...settings.contactInfo, ...parsed };
           } else if (row.key_name === 'home_banner') {
@@ -85,6 +120,8 @@ export class SettingsService {
   async updateSetting(key: string, value: any): Promise<SiteSettings> {
     let keyName = key;
     if (key === 'catalogEnabled') keyName = 'catalog_enabled';
+    if (key === 'showVersionToggle') keyName = 'show_version_toggle';
+    if (key === 'logoConfig') keyName = 'logo_config';
     if (key === 'contactInfo') keyName = 'contact_info';
     if (key === 'homeBanner') keyName = 'home_banner';
     if (key === 'eventsConfig') keyName = 'events_config';
@@ -104,6 +141,12 @@ export class SettingsService {
   async updateAllSettings(settingsData: Partial<SiteSettings>): Promise<SiteSettings> {
     if (settingsData.catalogEnabled !== undefined) {
       await this.updateSetting('catalogEnabled', settingsData.catalogEnabled);
+    }
+    if (settingsData.showVersionToggle !== undefined) {
+      await this.updateSetting('showVersionToggle', settingsData.showVersionToggle);
+    }
+    if (settingsData.logoConfig !== undefined) {
+      await this.updateSetting('logoConfig', settingsData.logoConfig);
     }
     if (settingsData.contactInfo !== undefined) {
       await this.updateSetting('contactInfo', settingsData.contactInfo);
