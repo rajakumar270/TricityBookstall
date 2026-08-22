@@ -6,13 +6,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   private pool: mysql.Pool;
 
   async onModuleInit() {
-    const dbUrl = process.env.DATABASE_URL;
+    const dbUrl = process.env.JAWSDB_URL || process.env.CLEARDB_DATABASE_URL || process.env.DATABASE_URL;
     const dbHost = process.env.DB_HOST || 'localhost';
     const dbPort = Number(process.env.DB_PORT) || 3306;
     const dbUser = process.env.DB_USER || 'root';
     const dbPassword = process.env.DB_PASSWORD || '';
     const dbName = process.env.DB_NAME || 'ekatva_bookstall_db';
-    const useSsl = process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production';
+    const useSsl = process.env.DB_SSL === 'true' || (process.env.NODE_ENV === 'production' && dbHost !== 'localhost' && dbHost !== '127.0.0.1');
 
     if (dbUrl) {
       this.pool = mysql.createPool({
@@ -23,7 +23,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         charset: 'utf8mb4',
         ssl: useSsl ? { rejectUnauthorized: false } : undefined,
       });
-      console.log(`🔌 MySQL Connection Pool connected using DATABASE_URL`);
+      console.log(`🔌 MySQL Connection Pool connected using DATABASE_URL / JAWSDB_URL`);
     } else {
       this.pool = mysql.createPool({
         host: dbHost,
@@ -35,7 +35,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         connectionLimit: 10,
         queueLimit: 0,
         charset: 'utf8mb4',
-        ssl: useSsl && dbHost !== 'localhost' && dbHost !== '127.0.0.1' ? { rejectUnauthorized: false } : undefined,
+        ssl: useSsl ? { rejectUnauthorized: false } : undefined,
       });
       console.log(`🔌 MySQL Connection Pool connected to [${dbHost}:${dbPort}/${dbName}]`);
     }

@@ -1,0 +1,10 @@
+{
+  "name": "tricity-bookstall",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "heroku-prebuild": "cd client && npm install && cd ../server && npm install",
+    "heroku-postbuild": "cd client && npm run build && cd ../server && npm run build",
+    "start": "cd server && npm run start:prod"
+  }
+}
