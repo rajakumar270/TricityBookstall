@@ -10,6 +10,7 @@ export default function Navbar({
   isAdmin,
   theme,
   toggleTheme,
+  siteSettings,
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -18,6 +19,7 @@ export default function Navbar({
     { id: 'kids', label: 'Kids Wisdom Corner 🎈', icon: Sparkles, highlight: true },
     { id: 'books', label: 'Book Catalog', icon: BookOpen },
     { id: 'events', label: 'Campus Events', icon: Calendar },
+    { id: 'gallery', label: 'Gallery', icon: Sparkles },
   ];
 
   return (
@@ -32,26 +34,26 @@ export default function Navbar({
           >
             <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-orange-600 via-amber-500 to-yellow-400 p-0.5 shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform duration-300">
               <img 
-                src="/assets/cropped-IMG-20260203-WA0031.jpg" 
+                src={siteSettings?.logoConfig?.logoUrl || '/assets/ekatva_v3_logo_1.jpg'} 
                 alt="Tricity Bookstall Logo"
                 className="w-full h-full object-cover rounded-[10px]"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100';
+                  e.target.src = '/assets/ekatva_logo_1.jpg';
                 }}
               />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                  Ekatva Foundation
+                  {siteSettings?.logoConfig?.title || 'Ekatva Foundation'}
                 </span>
                 <span className="bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400 text-xs font-semibold px-2 py-0.5 rounded-full border border-orange-500/30">
                   Tricity
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">
-                Wisdom Bookstall Initiative
+                {siteSettings?.logoConfig?.subtitle || 'Wisdom Bookstall Initiative'}
               </p>
             </div>
           </div>

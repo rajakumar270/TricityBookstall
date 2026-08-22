@@ -5,8 +5,16 @@ export interface SiteSettings {
   catalogEnabled: boolean;
   showVersionToggle: boolean;
   logoConfig: {
-    title: string;
-    subtitle: string;
+    title: string;       // Organization Name (e.g. Ekatva Foundation)
+    subtitle: string;    // Punch Line / Tagline below logo (e.g. Clarity of Mind • Freedom of Being)
+    logoUrl?: string;    // Logo Image URL
+    faviconUrl?: string; // Favicon URL
+  };
+  quoteConfig?: {
+    line1: string;
+    line2: string;
+    line3: string;
+    author?: string;
   };
   contactInfo: {
     phone: string;
@@ -18,7 +26,7 @@ export interface SiteSettings {
     facebook: string;
   };
   homeBanner: {
-    badge: string;
+    badge: string;       // Hero Badge / Punch line
     title: string;
     subtitle: string;
     imageUrl: string;
@@ -33,16 +41,24 @@ export interface SiteSettings {
 
 const DEFAULT_SETTINGS: SiteSettings = {
   catalogEnabled: false,
-  showVersionToggle: false, // Default hidden on public site as requested by user
+  showVersionToggle: false,
   logoConfig: {
     title: 'Ekatva Foundation',
     subtitle: 'Clarity of Mind • Freedom of Being',
+    logoUrl: '/assets/ekatva_v3_logo_1.jpg',
+    faviconUrl: '/assets/ekatva_logo_1.jpg',
+  },
+  quoteConfig: {
+    line1: 'Books open minds.',
+    line2: 'Dialogues open possibilities.',
+    line3: 'Together, we create change.',
+    author: 'Ekatva Movement',
   },
   contactInfo: {
-    phone: '+91 98765 43210',
-    email: 'contact@ekatvafoundation.org',
+    phone: '+91 80544 48521',
+    email: 'ekatvafoundation.bookstall@gmail.com',
     address: 'Tricity Stall Center, Sector 17, Chandigarh',
-    whatsapp: 'https://wa.me/919876543210',
+    whatsapp: 'https://wa.me/918054448521',
     instagram: 'https://instagram.com/ekatvafoundation',
     youtube: 'https://youtube.com/acharyaprashant',
     facebook: 'https://facebook.com/ekatvafoundation',
@@ -98,6 +114,8 @@ export class SettingsService implements OnModuleInit {
             settings.showVersionToggle = Boolean(parsed);
           } else if (row.key_name === 'logo_config') {
             settings.logoConfig = { ...settings.logoConfig, ...parsed };
+          } else if (row.key_name === 'quote_config') {
+            settings.quoteConfig = { ...settings.quoteConfig, ...parsed };
           } else if (row.key_name === 'contact_info') {
             settings.contactInfo = { ...settings.contactInfo, ...parsed };
           } else if (row.key_name === 'home_banner') {
@@ -122,6 +140,7 @@ export class SettingsService implements OnModuleInit {
     if (key === 'catalogEnabled') keyName = 'catalog_enabled';
     if (key === 'showVersionToggle') keyName = 'show_version_toggle';
     if (key === 'logoConfig') keyName = 'logo_config';
+    if (key === 'quoteConfig') keyName = 'quote_config';
     if (key === 'contactInfo') keyName = 'contact_info';
     if (key === 'homeBanner') keyName = 'home_banner';
     if (key === 'eventsConfig') keyName = 'events_config';
@@ -147,6 +166,9 @@ export class SettingsService implements OnModuleInit {
     }
     if (settingsData.logoConfig !== undefined) {
       await this.updateSetting('logoConfig', settingsData.logoConfig);
+    }
+    if (settingsData.quoteConfig !== undefined) {
+      await this.updateSetting('quoteConfig', settingsData.quoteConfig);
     }
     if (settingsData.contactInfo !== undefined) {
       await this.updateSetting('contactInfo', settingsData.contactInfo);

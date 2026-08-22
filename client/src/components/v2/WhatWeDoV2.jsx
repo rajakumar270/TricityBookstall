@@ -1,65 +1,73 @@
 import React from 'react';
 import { Building, Tent, MessageCircle, BookMarked } from 'lucide-react';
 
-export default function WhatWeDoV2() {
-  const cards = [
+const ICONS = [Building, Tent, MessageCircle, BookMarked];
+
+export default function WhatWeDoV2({ cmsBlocks }) {
+  const whatWeDo = cmsBlocks?.what_we_do;
+  const cards = whatWeDo?.cards || [
     {
       title: 'Schools & Colleges',
       description: 'Bringing value-based literature closer to students and educators.',
-      icon: Building,
     },
     {
       title: 'Events & Fairs',
       description: 'Engaging communities through book fairs, melas, and cultural events.',
-      icon: Tent,
     },
     {
       title: 'Meaningful Dialogue',
       description: 'Encouraging conversations that nurture clarity, character and compassion.',
-      icon: MessageCircle,
     },
     {
       title: 'Curated Selection',
       description: 'Handpicked books on philosophy, self-growth, indian thought and mindful living.',
-      icon: BookMarked,
     },
   ];
 
   return (
     <section id="about" className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
       
-      {/* Header */}
-      <div className="space-y-3">
-        <div className="text-[11px] font-bold tracking-[0.25em] text-[#A36B42] uppercase">
-          What We Do
-        </div>
-        
-        <h2 className="font-serif-editorial text-3xl sm:text-4xl text-[#242220] font-normal">
-          Creating Spaces for Wisdom & Growth
-        </h2>
+      {/* Section Subheading / Label */}
+      <div className="text-[11px] font-bold tracking-[0.25em] text-[#A36B42] uppercase mb-3">
+        {whatWeDo?.sectionTitle || 'What We Do'}
       </div>
 
-      {/* 4 Cards Grid - Parchment Vintage Aesthetic */}
-      <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {cards.map((card, index) => {
-          const Icon = card.icon;
+      {/* Section Title */}
+      <h2 className="font-serif-editorial text-3xl sm:text-4xl text-[#242220] font-normal mb-12">
+        {whatWeDo?.sectionSubtitle || 'Spreading clarity & character through books and conversation'}
+      </h2>
+
+      {/* 4 Cards Grid - Light Parchment Cards with Top Accents */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+        {cards.map((card, idx) => {
+          const Icon = ICONS[idx % ICONS.length];
           return (
-            <div
-              key={index}
-              className="bg-[#EFEBE2] p-8 rounded-3xl border border-[#A36B42]/15 hover:border-[#A36B42]/40 transition-all duration-300 flex flex-col items-center text-center space-y-4 hover:-translate-y-1 shadow-sm"
+            <div 
+              key={idx}
+              className="bg-[#EFEBE2] rounded-3xl p-6 border border-[#A36B42]/20 hover:border-[#A36B42]/50 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex flex-col justify-between"
             >
-              {/* Icon Container */}
-              <div className="w-16 h-16 rounded-2xl bg-[#F7F4EE] border border-[#A36B42]/25 flex items-center justify-center text-[#A36B42]">
-                <Icon className="w-8 h-8 stroke-[1.5]" />
+              <div>
+                {/* Icon Container */}
+                <div className="w-12 h-12 rounded-2xl bg-[#F7F4EE] border border-[#A36B42]/30 flex items-center justify-center text-[#A36B42] mb-5 shadow-xs">
+                  <Icon className="w-6 h-6" />
+                </div>
+
+                {/* Card Title */}
+                <h3 className="font-serif-editorial text-xl text-[#242220] font-bold mb-2">
+                  {card.title}
+                </h3>
+
+                {/* Card Description */}
+                <p className="text-xs text-[#5C554E] leading-relaxed">
+                  {card.description}
+                </p>
               </div>
 
-              <h3 className="font-serif-editorial text-xl font-bold text-[#242220]">
-                {card.title}
-              </h3>
-
-              <p className="text-xs text-[#5C554E] leading-relaxed">
-                {card.description}
-              </p>
+              {/* Bottom Subtle Tag */}
+              <div className="pt-4 mt-4 border-t border-[#A36B42]/10 flex items-center justify-between text-[10px] font-bold tracking-wider text-[#A36B42] uppercase">
+                <span>Pillar 0{idx + 1}</span>
+                <span>✦</span>
+              </div>
             </div>
           );
         })}

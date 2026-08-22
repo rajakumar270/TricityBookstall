@@ -8,18 +8,29 @@ const DEFAULT_BANNER_IMAGES = [
   '/assets/ekatva_v3_logo_1.jpg',
 ];
 
-export default function HeroV2({ onExploreBooks, onHostStall, onExploreEvents, siteSettings }) {
-  const stats = [
-    { label: 'Books Distributed', value: '55+', icon: BookOpen },
-    { label: 'Events Conducted', value: '185+', icon: Calendar },
-    { label: 'Students Engaged', value: '10K+', icon: Users },
-    { label: 'Dedicated Volunteers', value: '50+', icon: Heart },
-  ];
+const DEFAULT_STATS = [
+  { label: 'Books Distributed', value: '55+', icon: BookOpen },
+  { label: 'Events Conducted', value: '185+', icon: Calendar },
+  { label: 'Students Engaged', value: '10K+', icon: Users },
+  { label: 'Dedicated Volunteers', value: '50+', icon: Heart },
+];
 
+export default function HeroV2({ onExploreBooks, onHostStall, onExploreEvents, siteSettings, cmsBlocks }) {
+  const heroCms = cmsBlocks?.hero_section || {};
+  const statsCms = cmsBlocks?.impact_stats?.stats || null;
   const homeBanner = siteSettings?.homeBanner || {};
-  const badgeText = homeBanner.badge || 'Clarity of Mind, Freedom of Being • स्पष्ट मन, मुक्त जीवन';
-  const titleText = homeBanner.title || 'Timeless Wisdom. Meaningful Dialogues. Stronger Communities.';
-  const subtitleText = homeBanner.subtitle || 'We bring philosophical books and reflective dialogue to schools, colleges, institutions, and public events across the Tri-City.';
+
+  const badgeText = heroCms.badge || homeBanner.badge || 'Clarity of Mind, Freedom of Being • स्पष्ट मन, मुक्त जीवन';
+  const titleText = heroCms.title || homeBanner.title || 'Timeless Wisdom. Meaningful Dialogues. Stronger Communities.';
+  const subtitleText = heroCms.subtitle || homeBanner.subtitle || 'We bring philosophical books and reflective dialogue to schools, colleges, institutions, and public events across the Tri-City.';
+
+  const stats = statsCms && Array.isArray(statsCms) && statsCms.length === 4
+    ? statsCms.map((st, i) => ({
+        label: st.label,
+        value: st.value,
+        icon: DEFAULT_STATS[i]?.icon || BookOpen,
+      }))
+    : DEFAULT_STATS;
 
   const rawImages = homeBanner.bannerImages && homeBanner.bannerImages.length > 0
     ? homeBanner.bannerImages
@@ -63,15 +74,15 @@ export default function HeroV2({ onExploreBooks, onHostStall, onExploreEvents, s
             <div className="pt-3 flex items-center space-x-6">
               <button
                 onClick={onHostStall}
-                className="bg-[#242220] hover:bg-[#3D3834] text-white text-xs font-extrabold px-7 py-3.5 rounded-full shadow-lg flex items-center space-x-2 transition-all hover:scale-105"
+                className="bg-[#242220] hover:bg-[#3D3834] text-white text-xs font-extrabold px-7 py-3.5 rounded-full shadow-lg flex items-center space-x-2 transition-all hover:scale-105 cursor-pointer"
               >
-                <span>Invite a Bookstall</span>
+                <span>{heroCms.ctaSecondary || 'Invite a Bookstall'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
               <button
                 onClick={onExploreEvents}
-                className="text-xs font-extrabold text-[#242220] hover:text-[#A36B42] underline decoration-2 underline-offset-4 transition-colors"
+                className="text-xs font-extrabold text-[#242220] hover:text-[#A36B42] underline decoration-2 underline-offset-4 transition-colors cursor-pointer"
               >
                 Explore Events
               </button>
@@ -82,11 +93,6 @@ export default function HeroV2({ onExploreBooks, onHostStall, onExploreEvents, s
           {/* Right Column: Watercolor Brush Photo Frame Graphic */}
           <div className="lg:col-span-6 relative flex justify-center">
             
-            {/* Birds sketch overhead */}
-            <div className="absolute -top-8 left-12 text-[#A36B42]/40 text-xs font-serif italic select-none">
-              ~~~ 🕊️ ~~~
-            </div>
-
             {/* Watercolor Brush Stroke Frame Container */}
             <div className="relative w-80 sm:w-96 lg:w-[420px] h-80 sm:h-96 lg:h-[420px] p-4">
               {/* Outer decorative watercolor ring */}
@@ -134,8 +140,8 @@ export default function HeroV2({ onExploreBooks, onHostStall, onExploreEvents, s
 
         </div>
 
-        {/* Impact Statistics Bar - Exact replica from mockup */}
-        <div className="mt-16 bg-[#EFEBE2] rounded-3xl p-6 sm:p-8 border border-[#A36B42]/20 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        {/* Impact Statistics Bar */}
+        <div id="impact" className="mt-16 bg-[#EFEBE2] rounded-3xl p-6 sm:p-8 border border-[#A36B42]/20 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           {stats.map((stat, idx) => {
             const Icon = stat.icon;
             return (

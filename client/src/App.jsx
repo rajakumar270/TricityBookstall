@@ -4,6 +4,7 @@ import Hero from './components/Hero';
 import KidsSection from './components/KidsSection';
 import BooksCatalog from './components/BooksCatalog';
 import EventsGallery from './components/EventsGallery';
+import GallerySection from './components/v2/GallerySection';
 import HostStallModal from './components/HostStallModal';
 import VolunteerModal from './components/VolunteerModal';
 import BookDetailModal from './components/BookDetailModal';
@@ -19,7 +20,7 @@ import QuoteBannerV2 from './components/v2/QuoteBannerV2';
 import InviteBannerV2 from './components/v2/InviteBannerV2';
 import FooterV2 from './components/v2/FooterV2';
 
-import { fetchBooks, fetchEvents, fetchBookings, fetchSettingsApi } from './services/api';
+import { fetchBooks, fetchEvents, fetchBookings, fetchSettingsApi, fetchCmsBlocksApi } from './services/api';
 
 // Initial Fallback Seed Data
 const initialBooksSeed = [
@@ -96,6 +97,7 @@ const initialEventsSeed = [
     location: 'CGC Landran Campus, Mohali',
     date: 'Feb 2026',
     description: 'Engaged 1,200+ students and parents during annual day fest with interactive book displays and character literature.',
+    images: ['/assets/cgc1.jpg', '/assets/cgc2.jpg'],
     image: '/assets/cgc1.jpg',
     attendees: '1200+ Students',
   },
@@ -105,6 +107,7 @@ const initialEventsSeed = [
     location: 'Chandigarh University, Gharuan',
     date: 'Jan 2026',
     description: 'Special youth literature stall focusing on mental clarity, exam stress reduction, and self-reflection books.',
+    images: ['/assets/cu1.jpg', '/assets/cgc1.jpg'],
     image: '/assets/cu1.jpg',
     attendees: '2500+ Youth',
   },
@@ -114,6 +117,7 @@ const initialEventsSeed = [
     location: 'Sector 17 Plaza, Chandigarh',
     date: 'Jan 2026',
     description: 'Community weekend stall serving Tricity residents with Vedanta & youth development literature.',
+    images: ['/assets/cgc2.jpg', '/assets/cu1.jpg'],
     image: '/assets/cgc2.jpg',
     attendees: '800+ Visitors',
   },
@@ -129,6 +133,7 @@ export default function App() {
   const [events, setEvents] = useState(initialEventsSeed);
   const [bookings, setBookings] = useState([]);
   const [siteSettings, setSiteSettings] = useState(null);
+  const [cmsBlocks, setCmsBlocks] = useState(null);
 
   // Toggle Theme helper
   const toggleTheme = () => {
@@ -152,12 +157,23 @@ export default function App() {
       }
     }
 
-    // Fetch site settings (feature toggles, contact info, home banner)
+    // Fetch site settings (feature toggles, contact info, home banner, logo)
     fetchSettingsApi().then((data) => {
-      if (data) setSiteSettings(data);
+      if (data) {
+        setSiteSettings(data);
+        if (data.logoConfig?.faviconUrl) {
+          const link = document.querySelector("link[rel*='icon']");
+          if (link) link.href = data.logoConfig.faviconUrl;
+        }
+      }
     });
 
-    // Attempt fetching live data from NestJS Backend API
+    // Fetch CMS Content Blocks
+    fetchCmsBlocksApi().then((blocks) => {
+      if (blocks) setCmsBlocks(blocks);
+    });
+
+    // Fetch live data from NestJS Backend API
     fetchBooks().then((res) => {
       if (res && res.length > 0) setBooks(res);
     });
@@ -170,6 +186,45 @@ export default function App() {
   }, []);
 
   const isCatalogActive = isAdmin || (siteSettings ? siteSettings.catalogEnabled : false);
+
+  // ═══════════════════════════════════════════════════════════════════
+  // FULL-PAGE ADMIN VIEW
+  // ═══════════════════════════════════════════════════════════════════
+  if (adminModalOpen) {
+    return (
+      <AdminDashboard
+        isOpen={true}
+        onClose={() => {
+          setAdminModalOpen(false);
+          // If on /admin URL, clean up URL history without page reload
+          if (window.location.pathname.includes('/admin') || window.location.pathname.includes('/portal')) {
+            window.history.pushState({}, '', '/');
+          }
+        }}
+        isAdmin={isAdmin}
+        setIsAdmin={setIsAdmin}
+        userRole={userRole}
+        setUserRole={setUserRole}
+        books={books}
+        setBooks={setBooks}
+        events={events}
+        setEvents={setEvents}
+        bookings={bookings}
+        setBookings={setBookings}
+        siteVersion={siteVersion}
+        setSiteVersion={setSiteVersion}
+        siteSettings={siteSettings}
+        setSiteSettings={setSiteSettings}
+        onSettingsUpdated={(newSettings) => {
+          setSiteSettings(newSettings);
+          if (newSettings?.logoConfig?.faviconUrl) {
+            const link = document.querySelector("link[rel*='icon']");
+            if (link) link.href = newSettings.logoConfig.faviconUrl;
+          }
+        }}
+      />
+    );
+  }
 
   // --- V2 EDITORIAL PARCHMENT THEME ---
   if (siteVersion === 'v2') {
@@ -197,19 +252,21 @@ export default function App() {
                 onHostStall={() => setHostModalOpen(true)}
                 onExploreEvents={() => setActiveTab('events')}
                 siteSettings={siteSettings}
+                cmsBlocks={cmsBlocks}
               />
 
-              <WhatWeDoV2 />
+              <WhatWeDoV2 cmsBlocks={cmsBlocks} />
 
               <EventsV2
                 events={events}
                 onExploreEvents={() => setActiveTab('events')}
               />
 
-              <QuoteBannerV2 />
+              <QuoteBannerV2 cmsBlocks={cmsBlocks} siteSettings={siteSettings} />
 
               <InviteBannerV2
                 onHostStall={() => setHostModalOpen(true)}
+                cmsBlocks={cmsBlocks}
               />
             </>
           )}
@@ -236,10 +293,19 @@ export default function App() {
             </div>
           )}
 
-          {(activeTab === 'events' || activeTab === 'gallery') && (
+          {activeTab === 'events' && (
             <div className="py-8 bg-[#F7F4EE]">
               <EventsGallery
                 events={events}
+                onHostStall={() => setHostModalOpen(true)}
+                siteVersion={siteVersion}
+              />
+            </div>
+          )}
+
+          {activeTab === 'gallery' && (
+            <div className="py-8 bg-[#F7F4EE]">
+              <GallerySection
                 onHostStall={() => setHostModalOpen(true)}
                 siteVersion={siteVersion}
               />
@@ -251,6 +317,7 @@ export default function App() {
         <FooterV2
           setActiveTab={setActiveTab}
           onOpenHostModal={() => setHostModalOpen(true)}
+          siteSettings={siteSettings}
         />
 
         {/* Interactive Modals */}
@@ -277,23 +344,6 @@ export default function App() {
             setSelectedBook(null);
             setHostModalOpen(true);
           }}
-        />
-
-        <AdminDashboard
-          isOpen={adminModalOpen}
-          onClose={() => setAdminModalOpen(false)}
-          isAdmin={isAdmin}
-          setIsAdmin={setIsAdmin}
-          userRole={userRole}
-          setUserRole={setUserRole}
-          books={books}
-          setBooks={setBooks}
-          bookings={bookings}
-          setBookings={setBookings}
-          siteVersion={siteVersion}
-          setSiteVersion={setSiteVersion}
-          siteSettings={siteSettings}
-          setSiteSettings={setSiteSettings}
         />
 
       </div>
@@ -376,10 +426,19 @@ export default function App() {
           </div>
         )}
 
-        {(activeTab === 'events' || activeTab === 'gallery') && (
+        {activeTab === 'events' && (
           <div className="py-8">
             <EventsGallery
               events={events}
+              onHostStall={() => setHostModalOpen(true)}
+              siteVersion={siteVersion}
+            />
+          </div>
+        )}
+
+        {activeTab === 'gallery' && (
+          <div className="py-8">
+            <GallerySection
               onHostStall={() => setHostModalOpen(true)}
               siteVersion={siteVersion}
             />
@@ -417,23 +476,6 @@ export default function App() {
           setSelectedBook(null);
           setHostModalOpen(true);
         }}
-      />
-
-      <AdminDashboard
-        isOpen={adminModalOpen}
-        onClose={() => setAdminModalOpen(false)}
-        isAdmin={isAdmin}
-        setIsAdmin={setIsAdmin}
-        userRole={userRole}
-        setUserRole={setUserRole}
-        books={books}
-        setBooks={setBooks}
-        bookings={bookings}
-        setBookings={setBookings}
-        siteVersion={siteVersion}
-        setSiteVersion={setSiteVersion}
-        siteSettings={siteSettings}
-        setSiteSettings={setSiteSettings}
       />
 
     </div>

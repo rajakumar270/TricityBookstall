@@ -27,16 +27,19 @@ export default function NavbarV2({
 
   const handleNavClick = (linkId) => {
     if (linkId === 'impact') {
-      const el = document.getElementById('impact');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      } else {
+      if (activeTab !== 'home') {
         setActiveTab('home');
+        setTimeout(() => {
+          const el = document.getElementById('impact');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      } else {
+        const el = document.getElementById('impact');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
       }
-    } else if (linkId === 'gallery' || linkId === 'events') {
-      setActiveTab('events');
     } else {
       setActiveTab(linkId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -48,16 +51,19 @@ export default function NavbarV2({
           {/* Logo & Branding - Dynamic Logo Title & Tagline */}
           <div 
             className="flex items-center space-x-3 cursor-pointer group"
-            onClick={() => setActiveTab('home')}
+            onClick={() => {
+              setActiveTab('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
           >
             <div className="w-12 h-12 rounded-full bg-[#EFEBE2] border border-[#A36B42]/30 flex items-center justify-center p-1 shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
               <img 
-                src="/assets/ekatva_v3_logo_1.jpg" 
+                src={siteSettings?.logoConfig?.logoUrl || '/assets/ekatva_v3_logo_1.jpg'} 
                 alt="Ekatva Foundation Logo" 
                 className="w-full h-full object-cover rounded-full"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = '/assets/cropped-IMG-20260203-WA0031.jpg';
+                  e.target.src = '/assets/ekatva_logo_1.jpg';
                 }}
               />
             </div>
@@ -73,17 +79,20 @@ export default function NavbarV2({
 
           {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center space-x-7 text-xs font-semibold text-[#4A443E]">
-            {navLinks.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => handleNavClick(link.id)}
-                className={`hover:text-[#242220] transition-colors relative py-1 ${
-                  (activeTab === link.id || (link.id === 'gallery' && activeTab === 'events')) ? 'text-[#242220] font-bold border-b-2 border-[#A36B42]' : ''
-                }`}
-              >
-                {link.label}
-              </button>
-            ))}
+            {navLinks.map((link) => {
+              const isLinkActive = activeTab === link.id;
+              return (
+                <button
+                  key={link.id}
+                  onClick={() => handleNavClick(link.id)}
+                  className={`hover:text-[#242220] transition-colors relative py-1 cursor-pointer ${
+                    isLinkActive ? 'text-[#242220] font-bold border-b-2 border-[#A36B42]' : ''
+                  }`}
+                >
+                  {link.label}
+                </button>
+              );
+            })}
           </nav>
 
           {/* Action CTAs */}
@@ -93,7 +102,7 @@ export default function NavbarV2({
             {showVersionToggle && (
               <button
                 onClick={() => setSiteVersion(siteVersion === 'v2' ? 'v1' : 'v2')}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#EFEBE2] text-[#A36B42] border border-[#A36B42]/30 hover:bg-[#E5DFD3] transition-all"
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#EFEBE2] text-[#A36B42] border border-[#A36B42]/30 hover:bg-[#E5DFD3] transition-all cursor-pointer"
                 title="Switch Site Design Version"
               >
                 <Layers className="w-3.5 h-3.5" />
@@ -104,7 +113,7 @@ export default function NavbarV2({
             {/* Dark Textured Pill CTA */}
             <button
               onClick={onOpenHostModal}
-              className="bg-[#242220] hover:bg-[#3D3834] text-white text-xs font-extrabold px-5 py-2.5 rounded-full shadow-md transition-all hover:scale-105"
+              className="bg-[#242220] hover:bg-[#3D3834] text-white text-xs font-extrabold px-5 py-2.5 rounded-full shadow-md transition-all hover:scale-105 cursor-pointer"
             >
               Invite a Bookstall
             </button>
