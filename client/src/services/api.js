@@ -3,9 +3,12 @@ import axios from 'axios';
 const getApiBase = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
   if (typeof window !== 'undefined' && window.location && window.location.hostname) {
-    return `http://${window.location.hostname}:5001/api`;
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:5001/api';
+    }
+    return `${window.location.protocol}//${window.location.host}/api`;
   }
-  return 'http://localhost:5001/api';
+  return '/api';
 };
 
 export const api = axios.create({
