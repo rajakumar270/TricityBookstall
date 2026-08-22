@@ -1,14 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
-import KidsSection from './components/KidsSection';
-import BooksCatalog from './components/BooksCatalog';
-import EventsGallery from './components/EventsGallery';
-import GallerySection from './components/v2/GallerySection';
 import HostStallModal from './components/HostStallModal';
 import VolunteerModal from './components/VolunteerModal';
 import BookDetailModal from './components/BookDetailModal';
-import AdminDashboard from './components/AdminDashboard';
 import Footer from './components/Footer';
 
 // V2 Parchment Editorial Theme Components
@@ -19,6 +14,15 @@ import EventsV2 from './components/v2/EventsV2';
 import QuoteBannerV2 from './components/v2/QuoteBannerV2';
 import InviteBannerV2 from './components/v2/InviteBannerV2';
 import FooterV2 from './components/v2/FooterV2';
+import PageLoader from './components/v2/PageLoader';
+import TabFallbackLoader from './components/v2/TabFallbackLoader';
+
+// Code-split heavy views & Admin dashboard for fast lightweight initial load
+const KidsSection = lazy(() => import('./components/KidsSection'));
+const BooksCatalog = lazy(() => import('./components/BooksCatalog'));
+const EventsGallery = lazy(() => import('./components/EventsGallery'));
+const GallerySection = lazy(() => import('./components/v2/GallerySection'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 
 import { fetchBooks, fetchEvents, fetchBookings, fetchSettingsApi, fetchCmsBlocksApi } from './services/api';
 
@@ -134,6 +138,7 @@ export default function App() {
   const [bookings, setBookings] = useState([]);
   const [siteSettings, setSiteSettings] = useState(null);
   const [cmsBlocks, setCmsBlocks] = useState(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Toggle Theme helper
   const toggleTheme = () => {
@@ -157,33 +162,40 @@ export default function App() {
       }
     }
 
-    // Fetch site settings (feature toggles, contact info, home banner, logo)
-    fetchSettingsApi().then((data) => {
-      if (data) {
-        setSiteSettings(data);
-        if (data.logoConfig?.faviconUrl) {
-          const link = document.querySelector("link[rel*='icon']");
-          if (link) link.href = data.logoConfig.faviconUrl;
+    // Parallel fetch initial settings, CMS, books, events
+    Promise.allSettled([
+      fetchSettingsApi().then((data) => {
+        if (data) {
+          setSiteSettings(data);
+          if (data.logoConfig?.faviconUrl) {
+            const link = document.querySelector("link[rel*='icon']");
+            if (link) link.href = data.logoConfig.faviconUrl;
+          }
         }
-      }
-    });
-
-    // Fetch CMS Content Blocks
-    fetchCmsBlocksApi().then((blocks) => {
-      if (blocks) setCmsBlocks(blocks);
-    });
-
-    // Fetch live data from NestJS Backend API
-    fetchBooks().then((res) => {
-      if (res && res.length > 0) setBooks(res);
-    });
-    fetchEvents().then((res) => {
-      if (res && res.length > 0) setEvents(res);
-    });
-    fetchBookings().then((res) => {
-      if (res) setBookings(res);
+      }),
+      fetchCmsBlocksApi().then((blocks) => {
+        if (blocks) setCmsBlocks(blocks);
+      }),
+      fetchBooks().then((res) => {
+        if (res && res.length > 0) setBooks(res);
+      }),
+      fetchEvents().then((res) => {
+        if (res && res.length > 0) setEvents(res);
+      }),
+      fetchBookings().then((res) => {
+        if (res) setBookings(res);
+      }),
+    ]).finally(() => {
+      setTimeout(() => setIsInitialLoading(false), 700);
     });
   }, []);
+
+  // Dynamic SEO Title & Meta sync
+  useEffect(() => {
+    if (siteSettings?.logoConfig?.title) {
+      document.title = `${siteSettings.logoConfig.title} | ${siteSettings.logoConfig.subtitle || 'Tricity Wisdom Movement'}`;
+    }
+  }, [siteSettings]);
 
   const isCatalogActive = isAdmin || (siteSettings ? siteSettings.catalogEnabled : false);
 
@@ -192,37 +204,39 @@ export default function App() {
   // ═══════════════════════════════════════════════════════════════════
   if (adminModalOpen) {
     return (
-      <AdminDashboard
-        isOpen={true}
-        onClose={() => {
-          setAdminModalOpen(false);
-          // If on /admin URL, clean up URL history without page reload
-          if (window.location.pathname.includes('/admin') || window.location.pathname.includes('/portal')) {
-            window.history.pushState({}, '', '/');
-          }
-        }}
-        isAdmin={isAdmin}
-        setIsAdmin={setIsAdmin}
-        userRole={userRole}
-        setUserRole={setUserRole}
-        books={books}
-        setBooks={setBooks}
-        events={events}
-        setEvents={setEvents}
-        bookings={bookings}
-        setBookings={setBookings}
-        siteVersion={siteVersion}
-        setSiteVersion={setSiteVersion}
-        siteSettings={siteSettings}
-        setSiteSettings={setSiteSettings}
-        onSettingsUpdated={(newSettings) => {
-          setSiteSettings(newSettings);
-          if (newSettings?.logoConfig?.faviconUrl) {
-            const link = document.querySelector("link[rel*='icon']");
-            if (link) link.href = newSettings.logoConfig.faviconUrl;
-          }
-        }}
-      />
+      <Suspense fallback={<TabFallbackLoader label="Loading Admin Dashboard..." />}>
+        <AdminDashboard
+          isOpen={true}
+          onClose={() => {
+            setAdminModalOpen(false);
+            // If on /admin URL, clean up URL history without page reload
+            if (window.location.pathname.includes('/admin') || window.location.pathname.includes('/portal')) {
+              window.history.pushState({}, '', '/');
+            }
+          }}
+          isAdmin={isAdmin}
+          setIsAdmin={setIsAdmin}
+          userRole={userRole}
+          setUserRole={setUserRole}
+          books={books}
+          setBooks={setBooks}
+          events={events}
+          setEvents={setEvents}
+          bookings={bookings}
+          setBookings={setBookings}
+          siteVersion={siteVersion}
+          setSiteVersion={setSiteVersion}
+          siteSettings={siteSettings}
+          setSiteSettings={setSiteSettings}
+          onSettingsUpdated={(newSettings) => {
+            setSiteSettings(newSettings);
+            if (newSettings?.logoConfig?.faviconUrl) {
+              const link = document.querySelector("link[rel*='icon']");
+              if (link) link.href = newSettings.logoConfig.faviconUrl;
+            }
+          }}
+        />
+      </Suspense>
     );
   }
 
@@ -230,6 +244,11 @@ export default function App() {
   if (siteVersion === 'v2') {
     return (
       <div className="min-h-screen bg-[#F7F4EE] text-[#242220] flex flex-col font-sans selection:bg-[#A36B42] selection:text-white transition-colors duration-300">
+
+        {/* Engaging Fullscreen Initial Wisdom Loader */}
+        {isInitialLoading && !adminModalOpen && (
+          <PageLoader onFinish={() => setIsInitialLoading(false)} />
+        )}
 
         {/* V2 Header Navbar */}
         <NavbarV2
@@ -273,42 +292,50 @@ export default function App() {
 
           {activeTab === 'kids' && (
             <div className="py-8 bg-[#F7F4EE]">
-              <KidsSection
-                books={books}
-                onBookSelect={(book) => setSelectedBook(book)}
-                siteVersion={siteVersion}
-              />
+              <Suspense fallback={<TabFallbackLoader label="Opening Kids Wisdom Corner..." />}>
+                <KidsSection
+                  books={books}
+                  onBookSelect={(book) => setSelectedBook(book)}
+                  siteVersion={siteVersion}
+                />
+              </Suspense>
             </div>
           )}
 
           {activeTab === 'books' && (
             <div className="py-8 bg-[#F7F4EE]">
-              <BooksCatalog
-                books={books}
-                onBookSelect={(book) => setSelectedBook(book)}
-                siteVersion={siteVersion}
-                catalogEnabled={isCatalogActive}
-                onHostStall={() => setHostModalOpen(true)}
-              />
+              <Suspense fallback={<TabFallbackLoader label="Loading Wisdom Book Catalog..." />}>
+                <BooksCatalog
+                  books={books}
+                  onBookSelect={(book) => setSelectedBook(book)}
+                  siteVersion={siteVersion}
+                  catalogEnabled={isCatalogActive}
+                  onHostStall={() => setHostModalOpen(true)}
+                />
+              </Suspense>
             </div>
           )}
 
           {activeTab === 'events' && (
             <div className="py-8 bg-[#F7F4EE]">
-              <EventsGallery
-                events={events}
-                onHostStall={() => setHostModalOpen(true)}
-                siteVersion={siteVersion}
-              />
+              <Suspense fallback={<TabFallbackLoader label="Loading Campus Events & Stories..." />}>
+                <EventsGallery
+                  events={events}
+                  onHostStall={() => setHostModalOpen(true)}
+                  siteVersion={siteVersion}
+                />
+              </Suspense>
             </div>
           )}
 
           {activeTab === 'gallery' && (
             <div className="py-8 bg-[#F7F4EE]">
-              <GallerySection
-                onHostStall={() => setHostModalOpen(true)}
-                siteVersion={siteVersion}
-              />
+              <Suspense fallback={<TabFallbackLoader label="Opening Visual Photo Gallery..." />}>
+                <GallerySection
+                  onHostStall={() => setHostModalOpen(true)}
+                  siteVersion={siteVersion}
+                />
+              </Suspense>
             </div>
           )}
         </main>
@@ -367,6 +394,11 @@ export default function App() {
         </div>
       )}
 
+      {/* Engaging Fullscreen Initial Wisdom Loader */}
+      {isInitialLoading && !adminModalOpen && (
+        <PageLoader onFinish={() => setIsInitialLoading(false)} />
+      )}
+
       {/* Header Navigation */}
       <Navbar
         activeTab={activeTab}
@@ -390,58 +422,70 @@ export default function App() {
               siteSettings={siteSettings}
             />
 
-            <KidsSection
-              books={books}
-              onBookSelect={(book) => setSelectedBook(book)}
-              siteVersion={siteVersion}
-            />
+            <Suspense fallback={<TabFallbackLoader label="Loading Kids Section..." />}>
+              <KidsSection
+                books={books}
+                onBookSelect={(book) => setSelectedBook(book)}
+                siteVersion={siteVersion}
+              />
+            </Suspense>
 
-            <EventsGallery
-              events={events}
-              onHostStall={() => setHostModalOpen(true)}
-              siteVersion={siteVersion}
-            />
+            <Suspense fallback={<TabFallbackLoader label="Loading Campus Events..." />}>
+              <EventsGallery
+                events={events}
+                onHostStall={() => setHostModalOpen(true)}
+                siteVersion={siteVersion}
+              />
+            </Suspense>
           </>
         )}
 
         {activeTab === 'kids' && (
           <div className="py-8">
-            <KidsSection
-              books={books}
-              onBookSelect={(book) => setSelectedBook(book)}
-              siteVersion={siteVersion}
-            />
+            <Suspense fallback={<TabFallbackLoader label="Opening Kids Wisdom Corner..." />}>
+              <KidsSection
+                books={books}
+                onBookSelect={(book) => setSelectedBook(book)}
+                siteVersion={siteVersion}
+              />
+            </Suspense>
           </div>
         )}
 
         {activeTab === 'books' && (
           <div className="py-8">
-            <BooksCatalog
-              books={books}
-              onBookSelect={(book) => setSelectedBook(book)}
-              siteVersion={siteVersion}
-              catalogEnabled={isCatalogActive}
-              onHostStall={() => setHostModalOpen(true)}
-            />
+            <Suspense fallback={<TabFallbackLoader label="Loading Book Catalog..." />}>
+              <BooksCatalog
+                books={books}
+                onBookSelect={(book) => setSelectedBook(book)}
+                siteVersion={siteVersion}
+                catalogEnabled={isCatalogActive}
+                onHostStall={() => setHostModalOpen(true)}
+              />
+            </Suspense>
           </div>
         )}
 
         {activeTab === 'events' && (
           <div className="py-8">
-            <EventsGallery
-              events={events}
-              onHostStall={() => setHostModalOpen(true)}
-              siteVersion={siteVersion}
-            />
+            <Suspense fallback={<TabFallbackLoader label="Loading Campus Events & Stories..." />}>
+              <EventsGallery
+                events={events}
+                onHostStall={() => setHostModalOpen(true)}
+                siteVersion={siteVersion}
+              />
+            </Suspense>
           </div>
         )}
 
         {activeTab === 'gallery' && (
           <div className="py-8">
-            <GallerySection
-              onHostStall={() => setHostModalOpen(true)}
-              siteVersion={siteVersion}
-            />
+            <Suspense fallback={<TabFallbackLoader label="Opening Visual Photo Gallery..." />}>
+              <GallerySection
+                onHostStall={() => setHostModalOpen(true)}
+                siteVersion={siteVersion}
+              />
+            </Suspense>
           </div>
         )}
       </main>

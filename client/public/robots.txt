@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /portal
+Disallow: /api/
+
+Sitemap: https://tricity-bookstall-app-e81d6b4e4211.herokuapp.com/sitemap.xml
