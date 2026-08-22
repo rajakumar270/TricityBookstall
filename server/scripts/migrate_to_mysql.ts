@@ -6,23 +6,32 @@ import { seedBooksFromCSV } from '../src/books/books.seed';
 async function migrate() {
   console.log('🚀 Starting Ekatva Foundation MySQL Data Migration...');
 
-  const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT) || 3306,
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'ekatva_bookstall_db',
-    multipleStatements: true,
-  };
+  const dbUrl = process.env.JAWSDB_URL || process.env.CLEARDB_DATABASE_URL || process.env.DATABASE_URL;
 
   let connection: mysql.Connection;
 
   try {
-    connection = await mysql.createConnection(dbConfig);
-    console.log(`✅ Connected to MySQL Server at ${dbConfig.host}:${dbConfig.port}`);
+    if (dbUrl) {
+      connection = await mysql.createConnection({
+        uri: dbUrl,
+        multipleStatements: true,
+        ssl: { rejectUnauthorized: false },
+      });
+      console.log(`✅ Connected to Heroku / Remote MySQL Server using DATABASE_URL / JAWSDB_URL`);
+    } else {
+      const dbConfig = {
+        host: process.env.DB_HOST || 'localhost',
+        port: Number(process.env.DB_PORT) || 3306,
+        user: process.env.DB_USER || 'root',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_NAME || 'ekatva_bookstall_db',
+        multipleStatements: true,
+      };
+      connection = await mysql.createConnection(dbConfig);
+      console.log(`✅ Connected to MySQL Server at ${dbConfig.host}:${dbConfig.port}`);
+    }
   } catch (err: any) {
-    console.error(`❌ Failed to connect to MySQL database "${dbConfig.database}":`, err.message);
-    console.log(`💡 Please make sure MySQL is running and database "${dbConfig.database}" is created.`);
+    console.error(`❌ Failed to connect to MySQL database:`, err.message);
     process.exit(1);
   }
 

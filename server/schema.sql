@@ -4,12 +4,6 @@
 -- Collation: utf8mb4_unicode_ci
 -- ====================================================================
 
-CREATE DATABASE IF NOT EXISTS `ekatva_bookstall_db` 
-  CHARACTER SET utf8mb4 
-  COLLATE utf8mb4_unicode_ci;
-
-USE `ekatva_bookstall_db`;
-
 -- --------------------------------------------------------------------
 -- 1. BOOKS INVENTORY MASTER TABLE
 -- --------------------------------------------------------------------
