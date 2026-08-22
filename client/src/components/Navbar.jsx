@@ -114,17 +114,7 @@ export default function Navbar({
               <span>Invite Bookstall</span>
             </button>
 
-            <button
-              onClick={onOpenAdminModal}
-              title={isAdmin ? "Admin Dashboard Active" : "Admin Login"}
-              className={`p-2.5 rounded-xl border transition-all ${
-                isAdmin 
-                  ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/40 shadow-lg shadow-emerald-500/20'
-                  : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4" />
-            </button>
+
           </div>
 
           {/* Mobile Menu & Theme Trigger */}
@@ -171,7 +161,7 @@ export default function Navbar({
             );
           })}
 
-          <div className="pt-2 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-2">
+          <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
             <button
               onClick={() => {
                 onOpenHostModal();
@@ -180,15 +170,6 @@ export default function Navbar({
               className="w-full text-center bg-orange-500 text-white font-bold text-xs py-3 rounded-xl shadow-lg"
             >
               Invite Stall
-            </button>
-            <button
-              onClick={() => {
-                onOpenAdminModal();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full text-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs py-3 rounded-xl border border-slate-200 dark:border-slate-700"
-            >
-              Admin Portal
             </button>
           </div>
         </div>

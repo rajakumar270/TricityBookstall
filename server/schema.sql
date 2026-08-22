@@ -128,3 +128,13 @@ CREATE TABLE IF NOT EXISTS `users` (
   `is_active` TINYINT(1) NOT NULL DEFAULT 1,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------------------
+-- 8. SITE CONFIGURATION & FEATURE TOGGLES TABLE
+-- --------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `site_settings` (
+  `key_name` VARCHAR(100) NOT NULL PRIMARY KEY,
+  `value_json` TEXT NOT NULL,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

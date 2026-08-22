@@ -87,18 +87,7 @@ export default function NavbarV2({
               <span>Version: <strong>v2 Editorial</strong></span>
             </button>
 
-            {/* Admin Shield Icon */}
-            <button
-              onClick={onOpenAdminModal}
-              title={isAdmin ? "Admin Portal Active" : "Admin Login"}
-              className={`p-2 rounded-full border transition-all ${
-                isAdmin 
-                  ? 'bg-emerald-600/10 text-emerald-800 border-emerald-500/40' 
-                  : 'bg-[#EFEBE2] text-[#4A443E] hover:text-[#242220] border-[#A36B42]/20'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4" />
-            </button>
+
 
             {/* Dark Textured Pill CTA - Exact Match to Mockup */}
             <button

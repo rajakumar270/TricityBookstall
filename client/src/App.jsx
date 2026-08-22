@@ -19,7 +19,7 @@ import QuoteBannerV2 from './components/v2/QuoteBannerV2';
 import InviteBannerV2 from './components/v2/InviteBannerV2';
 import FooterV2 from './components/v2/FooterV2';
 
-import { fetchBooks, fetchEvents, fetchBookings } from './services/api';
+import { fetchBooks, fetchEvents, fetchBookings, fetchSettingsApi } from './services/api';
 
 // Initial Fallback Seed Data
 const initialBooksSeed = [
@@ -30,123 +30,107 @@ const initialBooksSeed = [
     category: 'Kids Wisdom',
     isKidsSection: true,
     isFeatured: true,
-    language: 'Bilingual',
-    description: 'Charming illustrated stories bringing timeless ethical principles, bravery, and character-building values to young children.',
-    coverImage: '/assets/books/book_images/book_image_1.jpg',
-    badge: 'Kids Favorite',
-    readingAge: 'Ages 6 - 12',
-    pages: 120,
+    language: 'Hindi',
+    mrp: 180,
+    buyingCost: 75,
+    sellingPrice: 80,
     availableStock: 45,
+    description: 'Beautifully illustrated Gita stories for young kids focusing on moral values, courage, and mindfulness.',
+    coverImage: '/assets/books/bal_gita.jpg',
+    problemAddressedTag: 'Kids Focus & Values',
   },
   {
     id: 'b2',
-    title: 'Stories of Clarity & Character',
-    author: 'Ekatva Foundation Youth Edition',
-    category: 'Kids Wisdom',
-    isKidsSection: true,
-    isFeatured: true,
-    language: 'English',
-    description: 'Interactive short stories designed to instill concentration, kindness, respect for elders, and mental clarity in young minds.',
-    coverImage: '/assets/books/book_images/book_image_2.jpg',
-    badge: 'Bestseller for Kids',
-    readingAge: 'Ages 8 - 14',
-    pages: 96,
-    availableStock: 60,
-  },
-  {
-    id: 'b3',
-    title: 'The Science of Mind Control & Focus',
+    title: 'Sankalp (Mind & Action)',
     author: 'Acharya Prashant',
     category: 'Mind & Character',
     isKidsSection: false,
     isFeatured: true,
+    language: 'Hindi',
+    mrp: 280,
+    buyingCost: 110,
+    sellingPrice: 120,
+    availableStock: 60,
+    description: 'Transforming distraction into unwavering focus. Essential wisdom for students preparing for competitive exams.',
+    coverImage: '/assets/books/sankalp.jpg',
+    problemAddressedTag: 'Student Focus & Discipline',
+  },
+  {
+    id: 'b3',
+    title: 'Fearless Youth (Nirbhay Yuva)',
+    author: 'Acharya Prashant',
+    category: 'Self Discovery',
+    isKidsSection: false,
+    isFeatured: true,
     language: 'English',
-    description: 'A practical guide for students and youth to master thoughts, overcome distraction, reduce exam stress, and achieve purposeful living.',
-    coverImage: '/assets/books/book_images/book_image_3.jpg',
-    badge: 'Must Read for Students',
-    pages: 180,
-    availableStock: 120,
+    mrp: 250,
+    buyingCost: 100,
+    sellingPrice: 110,
+    availableStock: 35,
+    description: 'Breaking free from peer pressure, societal expectations, and career anxiety.',
+    coverImage: '/assets/books/fearless_youth.jpg',
+    problemAddressedTag: 'Overcoming Peer Pressure',
+  },
+  {
+    id: 'b4',
+    title: 'Bhagavad Gita Essentials for Students',
+    author: 'Vedanta Wisdom Series',
+    category: 'Vedanta & Classics',
+    isKidsSection: false,
+    isFeatured: true,
+    language: 'Bilingual',
+    mrp: 320,
+    buyingCost: 140,
+    sellingPrice: 150,
+    availableStock: 25,
+    description: 'Practical chapter summaries of Gita applied directly to modern student challenges.',
+    coverImage: '/assets/books/gita_essentials.jpg',
+    problemAddressedTag: 'Clarity & Self Knowledge',
   },
 ];
 
 const initialEventsSeed = [
   {
-    id: 'ev-1',
-    title: 'साहिtyam 2026 - CGC University',
-    location: 'CGC University, Landran, Mohali',
-    city: 'Mohali',
-    date: '03 - 04 FEB, 2026',
-    description: 'Engaged thousands of college students with interactive book discussions on stress management, focus, and practical wisdom during the annual literary fest.',
-    images: ['/assets/cgc1.jpg', '/assets/cgc2.jpg', '/assets/cgc3.jpg', '/assets/cgc4.jpg'],
-    category: 'University Fest',
+    id: 'e1',
+    title: 'CGC Landran Bookstall & PTM Wisdom Pavilion',
+    location: 'CGC Landran Campus, Mohali',
+    date: 'Feb 2026',
+    description: 'Engaged 1,200+ students and parents during annual day fest with interactive book displays and character literature.',
+    image: '/assets/cgc1.jpg',
+    attendees: '1200+ Students',
   },
   {
-    id: 'ev-3',
-    title: 'PTM - Doon Public School',
-    location: 'Sec 21, Panchkula, HR',
-    city: 'Panchkula',
-    date: '06 SEP, 2025',
-    description: 'Hosted a specialized Kids & Parent Wisdom bookstall providing moral storybooks, Bal Gita, and value education guides during the Parent Teacher Meeting.',
-    images: ['/assets/d2.jpg', '/assets/d3.jpg', '/assets/d4.jpg', '/assets/d5.jpg'],
-    category: 'School PTM',
+    id: 'e2',
+    title: 'CU Student Literature Dialogue Stall',
+    location: 'Chandigarh University, Gharuan',
+    date: 'Jan 2026',
+    description: 'Special youth literature stall focusing on mental clarity, exam stress reduction, and self-reflection books.',
+    image: '/assets/cu1.jpg',
+    attendees: '2500+ Youth',
   },
   {
-    id: 'ev-4',
-    title: 'Pustak Mela - Indradhanush Auditorium',
-    location: 'Sec 5, Panchkula, HR',
-    city: 'Panchkula',
-    date: '07 - 13 NOV, 2025',
-    description: 'A 7-day public book exhibition bringing classical Indian philosophy, character building literature, and youth guidance to the Tricity community.',
-    images: ['/assets/event1.jpg', '/assets/event2.jpg', '/assets/event3.jpg', '/assets/event4.jpg'],
-    category: 'Book Fair',
+    id: 'e3',
+    title: 'Sector 17 Plaza Open Literature Bookstall',
+    location: 'Sector 17 Plaza, Chandigarh',
+    date: 'Jan 2026',
+    description: 'Community weekend stall serving Tricity residents with Vedanta & youth development literature.',
+    image: '/assets/cgc2.jpg',
+    attendees: '800+ Visitors',
   },
-  {
-    id: 'ev-2',
-    title: 'Cyanide 2025 - Panjab University',
-    location: 'Sec 14, Chandigarh',
-    city: 'Chandigarh',
-    date: '21 - 23 FEB, 2025',
-    description: 'Over 3 enriching days at Panjab University, students from Philosophy, Science, and Humanities joined reflective dialogues around Vedanta and mindfulness.',
-    images: ['/assets/pu1.jpg', '/assets/pu2.jpg', '/assets/pu3.jpg', '/assets/pu4.jpg'],
-    category: 'University Fest',
-  }
 ];
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'kids' | 'books' | 'events'
+  const [siteVersion, setSiteVersion] = useState('v2'); // 'v2' (Editorial Parchment) | 'v1' (Modern)
+  const [theme, setTheme] = useState('dark');
+
+  // App Data state
   const [books, setBooks] = useState(initialBooksSeed);
   const [events, setEvents] = useState(initialEventsSeed);
   const [bookings, setBookings] = useState([]);
+  const [siteSettings, setSiteSettings] = useState(null);
 
-  // Site Version State ('v2' Parchment Editorial OR 'v1' Modern Glass)
-  const [siteVersion, setSiteVersion] = useState(() => {
-    return localStorage.getItem('siteVersion') || 'v2';
-  });
-
-  useEffect(() => {
-    localStorage.setItem('siteVersion', siteVersion);
-  }, [siteVersion]);
-
-  // Theme Management (Light / Dark switchable for V1)
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved) return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
-
-  useEffect(() => {
-    if (siteVersion === 'v1') {
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme, siteVersion]);
-
+  // Toggle Theme helper
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
@@ -160,6 +144,19 @@ export default function App() {
   const [userRole, setUserRole] = useState('Admin');
 
   useEffect(() => {
+    // Secret route check for /admin or /portal in URL
+    if (typeof window !== 'undefined' && window.location) {
+      const path = window.location.pathname.toLowerCase();
+      if (path === '/admin' || path === '/admin/' || path === '/portal' || path === '/portal/') {
+        setAdminModalOpen(true);
+      }
+    }
+
+    // Fetch site settings (feature toggles, contact info, home banner)
+    fetchSettingsApi().then((data) => {
+      if (data) setSiteSettings(data);
+    });
+
     // Attempt fetching live data from NestJS Backend API
     fetchBooks().then((res) => {
       if (res && res.length > 0) setBooks(res);
@@ -171,6 +168,8 @@ export default function App() {
       if (res) setBookings(res);
     });
   }, []);
+
+  const isCatalogActive = isAdmin || (siteSettings ? siteSettings.catalogEnabled : false);
 
   // --- V2 EDITORIAL PARCHMENT THEME ---
   if (siteVersion === 'v2') {
@@ -229,6 +228,8 @@ export default function App() {
                 books={books}
                 onBookSelect={(book) => setSelectedBook(book)}
                 siteVersion={siteVersion}
+                catalogEnabled={isCatalogActive}
+                onHostStall={() => setHostModalOpen(true)}
               />
             </div>
           )}
@@ -288,6 +289,8 @@ export default function App() {
           bookings={bookings}
           setBookings={setBookings}
           siteVersion={siteVersion}
+          siteSettings={siteSettings}
+          setSiteSettings={setSiteSettings}
         />
 
       </div>
@@ -360,6 +363,8 @@ export default function App() {
               books={books}
               onBookSelect={(book) => setSelectedBook(book)}
               siteVersion={siteVersion}
+              catalogEnabled={isCatalogActive}
+              onHostStall={() => setHostModalOpen(true)}
             />
           </div>
         )}
@@ -419,6 +424,8 @@ export default function App() {
         bookings={bookings}
         setBookings={setBookings}
         siteVersion={siteVersion}
+        siteSettings={siteSettings}
+        setSiteSettings={setSiteSettings}
       />
 
     </div>

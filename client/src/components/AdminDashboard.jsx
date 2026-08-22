@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ShieldCheck, Plus, Trash2, Edit3, CheckCircle, X, LogOut, BookOpen, Clock, Building2, User, Phone, Mail, Sparkles, Upload, Calendar, DollarSign, Tag, CheckSquare, Layers, FileSpreadsheet, Smartphone, ShoppingBag, Download
+  ShieldCheck, Plus, Trash2, Edit3, CheckCircle, X, LogOut, BookOpen, Clock, Building2, User, Phone, Mail, Sparkles, Upload, Calendar, DollarSign, Tag, CheckSquare, Layers, FileSpreadsheet, Smartphone, ShoppingBag, Download, Settings, Globe, Share2, ToggleLeft, ToggleRight
 } from 'lucide-react';
-import { loginAdmin, createBookApi, updateBookApi, deleteBookApi, recordSalesEntryApi, fetchSalesLogsApi } from '../services/api';
+import { loginAdmin, createBookApi, updateBookApi, deleteBookApi, recordSalesEntryApi, fetchSalesLogsApi, fetchSettingsApi, updateSettingsApi } from '../services/api';
 
 export default function AdminDashboard({
   isOpen,
@@ -16,14 +16,44 @@ export default function AdminDashboard({
   bookings,
   setBookings,
   siteVersion = 'v2',
+  siteSettings,
+  setSiteSettings,
+  onSettingsUpdated,
 }) {
-  const [activeTab, setActiveTab] = useState('books'); // 'books' | 'sales' | 'csv' | 'requests'
-  const [selectedMainCatFilter, setSelectedMainCatFilter] = useState('All'); // 'All' | 'Acharya Prashant Foundation' | 'Other Author'
+  const [activeTab, setActiveTab] = useState('books'); // 'books' | 'sales' | 'csv' | 'requests' | 'settings'
+  const [selectedMainCatFilter, setSelectedMainCatFilter] = useState('All');
   
   // Auth state
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
+
+  // Settings form state
+  const [localSettings, setLocalSettings] = useState({
+    catalogEnabled: false,
+    contactInfo: {
+      phone: '+91 98765 43210',
+      email: 'contact@ekatvafoundation.org',
+      address: 'Tricity Stall Center, Sector 17, Chandigarh',
+      whatsapp: 'https://wa.me/919876543210',
+      instagram: 'https://instagram.com/ekatvafoundation',
+      youtube: 'https://youtube.com/acharyaprashant',
+      facebook: 'https://facebook.com/ekatvafoundation',
+    },
+    homeBanner: {
+      badge: 'Tricity Campus & PTM Literature Movement',
+      title: 'Transforming Lives Through Higher Wisdom Literature',
+      subtitle: 'Bringing timeless clarity, Vedanta, and youth character-building literature to schools, universities, and book stalls across Chandigarh, Mohali, and Panchkula.',
+      imageUrl: '/assets/banner.jpg',
+    },
+    eventsConfig: {
+      bannerImage: '/assets/cgc1.jpg',
+      title: 'Campus Impact & Bookstall Gallery',
+      description: 'Moments of student engagement, book fairs, and PTM bookstalls across Tricity educational institutions.',
+    },
+  });
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsSuccess, setSettingsSuccess] = useState('');
 
   // Add / Edit Book Form state
   const [showBookModal, setShowBookModal] = useState(false);
@@ -66,10 +96,18 @@ export default function AdminDashboard({
   const [csvMessage, setCsvMessage] = useState('');
 
   useEffect(() => {
-    if (isAdmin) {
-      loadSalesLogs();
+    if (isOpen) {
+      if (isAdmin) {
+        loadSalesLogs();
+      }
+      fetchSettingsApi().then((data) => {
+        if (data) {
+          setLocalSettings(data);
+          if (setSiteSettings) setSiteSettings(data);
+        }
+      });
     }
-  }, [isAdmin]);
+  }, [isOpen, isAdmin]);
 
   const loadSalesLogs = async () => {
     const logs = await fetchSalesLogsApi();
@@ -93,7 +131,43 @@ export default function AdminDashboard({
       setCurrentUser(data.user);
       setSalesForm((prev) => ({ ...prev, recordedBy: data.user?.name || role }));
     } catch (err) {
-      setLoginError(err.message || 'Invalid credentials. Try admin / admin123 or volunteer / volunteer123');
+      setLoginError(err.message || 'Invalid credentials. Please check your username and password.');
+    }
+  };
+
+  const handleSaveSettingsSubmit = async (e) => {
+    e.preventDefault();
+    setSettingsSaving(true);
+    setSettingsSuccess('');
+    try {
+      const updated = await updateSettingsApi(localSettings);
+      if (updated) {
+        setLocalSettings(updated);
+        if (setSiteSettings) setSiteSettings(updated);
+        if (onSettingsUpdated) onSettingsUpdated(updated);
+        setSettingsSuccess('✅ Site controls & dynamic settings updated successfully!');
+        setTimeout(() => setSettingsSuccess(''), 3500);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
+  const handleToggleCatalog = async () => {
+    const nextState = !localSettings.catalogEnabled;
+    const updatedLocal = { ...localSettings, catalogEnabled: nextState };
+    setLocalSettings(updatedLocal);
+    try {
+      const updated = await updateSettingsApi(updatedLocal);
+      if (updated) {
+        setLocalSettings(updated);
+        if (setSiteSettings) setSiteSettings(updated);
+        if (onSettingsUpdated) onSettingsUpdated(updated);
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -102,7 +176,7 @@ export default function AdminDashboard({
     setBookForm({
       title: '',
       hinglishTitle: '',
-      author: 'Acharya Prashant',
+      author: '',
       mainCategory: 'Acharya Prashant Foundation',
       category: 'Kids Wisdom',
       isKidsSection: false,
@@ -147,143 +221,123 @@ export default function AdminDashboard({
     e.preventDefault();
     if (editingBookId) {
       const updated = await updateBookApi(editingBookId, bookForm);
-      setBooks(books.map((b) => (b.id === editingBookId ? { ...b, ...updated } : b)));
+      setBooks((prev) => prev.map((b) => (b.id === editingBookId ? updated : b)));
     } else {
       const created = await createBookApi(bookForm);
-      setBooks([created, ...books]);
+      setBooks((prev) => [created, ...prev]);
     }
     setShowBookModal(false);
   };
 
   const handleDeleteBook = async (id) => {
-    if (window.confirm('Are you sure you want to delete this book entry?')) {
+    if (window.confirm('Are you sure you want to delete this book entry from inventory?')) {
       await deleteBookApi(id);
-      setBooks(books.filter((b) => b.id !== id));
+      setBooks((prev) => prev.filter((b) => b.id !== id));
     }
   };
 
   const handleBookSelectForSales = (bookId) => {
-    const selected = books.find((b) => b.id === bookId);
-    if (selected) {
-      setSalesForm({
-        ...salesForm,
-        bookId: bookId,
-        sellingPriceOnDate: selected.sellingPrice || selected.mrp || 0,
-      });
+    const book = books.find((b) => b.id === bookId);
+    if (book) {
+      setSalesForm((prev) => ({
+        ...prev,
+        bookId: book.id,
+        sellingPriceOnDate: book.sellingPrice || book.mrp || 0,
+      }));
     }
   };
 
   const handleRecordSalesSubmit = async (e) => {
     e.preventDefault();
+    setSalesSuccess('');
     if (!salesForm.bookId) return;
 
-    setSalesSuccess('');
-    const newEntry = await recordSalesEntryApi(salesForm);
-
-    // Update local book stock & price
-    setBooks(
-      books.map((b) => {
-        if (b.id === salesForm.bookId) {
-          return {
-            ...b,
-            availableStock: Math.max(0, b.availableStock - Number(salesForm.quantitySold)),
-            sellingPrice: Number(salesForm.sellingPriceOnDate),
-          };
-        }
-        return b;
-      })
-    );
-
-    setSalesLogs([newEntry, ...salesLogs]);
-    setSalesSuccess(`Recorded sale of ${salesForm.quantitySold} copies!`);
-    setTimeout(() => setSalesSuccess(''), 4000);
-  };
-
-  const handleDownloadSampleCsv = () => {
-    const csvContent = `Book Title,Author,MRP,Buying Cost,Selling Price,Available Stock,Language,Main Category,Sub Category,Problem Addressed,Is Kids Book
-"1984","George Orwell",199,99.5,99.5,5,"English","Other Author","Mind & Character","Mind Control & Freedom","No"
-"Animal Farm","George Orwell",125,62.5,62.5,4,"English","Other Author","Mind & Character","Political Awareness","No"
-"स्त्री","Acharya Prashant",280,100,100,10,"Hindi","Acharya Prashant Foundation","Self Discovery","Relationships & Self-Respect","No"
-"Illustrated Bal Gita","Ekatva Foundation Series",250,120,120,15,"Bilingual","Acharya Prashant Foundation","Kids Wisdom","Parenting & Character Building","Yes"
-`;
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'sample_books_inventory.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const res = await recordSalesEntryApi(salesForm);
+    if (res) {
+      setSalesLogs((prev) => [res, ...prev]);
+      setBooks((prev) =>
+        prev.map((b) => {
+          if (b.id === salesForm.bookId) {
+            return {
+              ...b,
+              availableStock: Math.max(0, b.availableStock - salesForm.quantitySold),
+              sellingPrice: salesForm.sellingPriceOnDate,
+            };
+          }
+          return b;
+        })
+      );
+      setSalesSuccess(`Logged sale of ${salesForm.quantitySold} copies!`);
+      setTimeout(() => setSalesSuccess(''), 3000);
+    }
   };
 
   const handleCsvFileUpload = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      setCsvText(evt.target.result);
-    };
-    reader.readAsText(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setCsvText(evt.target.result);
+      };
+      reader.readAsText(file);
+    }
   };
 
   const handleCsvImportSubmit = async (e) => {
     e.preventDefault();
     setCsvMessage('');
-
     if (!csvText.trim()) return;
 
-    const lines = csvText.split('\n');
-    const importedBooks = [];
+    const lines = csvText.split('\n').filter((l) => l.trim().length > 0);
+    let count = 0;
+    const newBooks = [];
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
+    for (let line of lines) {
+      const parts = line.split(',').map((p) => p.trim().replace(/^["']|["']$/g, ''));
+      if (parts.length >= 2) {
+        const title = parts[0];
+        const author = parts[1] || 'Author';
+        const mrp = parseFloat(parts[2]) || 200;
+        const buyingCost = parseFloat(parts[3]) || 100;
+        const sellingPrice = parseFloat(parts[4]) || 100;
+        const stock = parseInt(parts[5]) || 10;
+        const lang = parts[6] || 'Hindi';
 
-      const cols = line.split(',').map((c) => c.replace(/^"/, '').replace(/"$/, '').trim());
-      if (cols.length >= 2) {
-        const title = cols[0];
-        const author = cols[1] || 'Unknown Author';
-        const mrp = cols[2] ? parseFloat(cols[2]) || 200 : 200;
-        const buyingCost = cols[3] ? parseFloat(cols[3]) || 100 : 100;
-        const sellingPrice = cols[4] ? parseFloat(cols[4]) || buyingCost : buyingCost;
-        const stock = cols[5] ? parseInt(cols[5]) || 10 : 10;
-        const lang = cols[6] || 'English';
-        const mainCat = cols[7] || csvTargetCat;
-        const subCat = cols[8] || 'Mind & Character';
-        const problemTag = cols[9] || 'Personal Growth & Freedom';
-        const isKids = cols[10] ? cols[10].toLowerCase().includes('yes') || cols[10].toLowerCase().includes('true') : false;
-
-        const lowerT = title.toLowerCase();
-        if (lowerT !== 'title' && lowerT !== 'book title' && lowerT !== 'no.') {
-          const bookObj = {
-            title: title,
-            author: author,
-            mainCategory: mainCat,
-            category: subCat,
-            isKidsSection: isKids,
-            isFeatured: false,
-            language: lang,
-            mrp: mrp,
-            buyingCost: buyingCost,
-            sellingPrice: sellingPrice,
-            availableStock: stock,
-            coverImage: '',
-            problemAddressedTag: problemTag,
-          };
-
-          const saved = await createBookApi(bookObj);
-          importedBooks.push(saved);
-        }
+        const created = await createBookApi({
+          title,
+          author,
+          mainCategory: csvTargetCat,
+          category: 'Mind & Character',
+          isKidsSection: false,
+          isFeatured: false,
+          language: lang,
+          mrp,
+          buyingCost,
+          sellingPrice,
+          availableStock: stock,
+          problemAddressedTag: 'Personal Growth & Freedom',
+        });
+        newBooks.push(created);
+        count++;
       }
     }
 
-    if (importedBooks.length > 0) {
-      setBooks([...importedBooks, ...books]);
-      setCsvMessage(`Successfully imported ${importedBooks.length} books into Inventory database!`);
-      setCsvText('');
-    } else {
-      setCsvMessage('Could not parse books. Download the Sample CSV Template to check supported columns.');
-    }
+    setBooks((prev) => [...newBooks, ...prev]);
+    setCsvMessage(`Successfully imported ${count} books into ${csvTargetCat}!`);
+    setCsvText('');
+  };
+
+  const handleDownloadSampleCsv = () => {
+    const sampleContent = `Title, Author, MRP, BuyingCost, SellingPrice, Stock, Language
+"Sankalp", "Acharya Prashant", 280, 100, 150, 20, "Hindi"
+"1984", "George Orwell", 199, 99.5, 99.5, 5, "English"`;
+    const blob = new Blob([sampleContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_inventory_books.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const filteredBooks = books.filter((b) => {
@@ -292,51 +346,51 @@ export default function AdminDashboard({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/90 backdrop-blur-md overflow-y-auto">
-      <div className={`relative w-full max-w-5xl rounded-3xl border shadow-2xl overflow-hidden my-4 sm:my-8 flex flex-col max-h-[92vh] transition-colors ${
-        isV2
-          ? 'bg-[#F7F4EE] border-[#A36B42]/30 text-[#242220]'
-          : 'bg-slate-900 border-slate-800 text-white'
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/90 backdrop-blur-md overflow-y-auto">
+      <div className={`relative w-full max-w-6xl rounded-3xl border shadow-2xl overflow-hidden flex flex-col max-h-[92vh] ${
+        isV2 ? 'bg-[#F7F4EE] border-[#A36B42]/30 text-[#242220]' : 'bg-slate-900 border-slate-800 text-white'
       }`}>
         
-        {/* Top Header */}
-        <div className={`p-4 sm:p-6 flex items-center justify-between flex-wrap gap-3 ${
-          isV2
-            ? 'bg-[#242220] border-b border-[#A36B42]/30 text-white'
-            : 'bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-800 text-white'
+        {/* Modal Header */}
+        <div className={`px-6 py-4 border-b flex items-center justify-between ${
+          isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20' : 'bg-slate-950 border-slate-800'
         }`}>
           <div className="flex items-center space-x-3">
-            <div className={`p-2.5 rounded-xl border ${isV2 ? 'bg-[#A36B42]/20 text-[#A36B42] border-[#A36B42]/40' : 'bg-orange-500/20 text-orange-400 border-orange-500/30'}`}>
+            <div className={`p-2.5 rounded-2xl ${
+              isV2 ? 'bg-[#242220] text-[#A36B42]' : 'bg-gradient-to-tr from-orange-500 to-amber-400 text-slate-950'
+            }`}>
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <h3 className={`text-lg sm:text-xl font-bold ${isV2 ? 'font-serif-editorial text-[#F7F4EE]' : 'text-white font-extrabold'}`}>Ekatva Foundation Bookstall Inventory Portal</h3>
-                {isAdmin && (
-                  <span className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border ${
-                    userRole === 'Admin' ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' : 'bg-blue-500/20 text-blue-300 border-blue-500/40'
-                  }`}>
-                    {userRole || 'Admin'}
-                  </span>
-                )}
-              </div>
-              <p className={`text-xs ${isV2 ? 'text-[#D4C9BC]' : 'text-slate-400'}`}>Books Inventory, MRP/Cost Management & Sales Logger</p>
+              <h3 className={`text-base font-extrabold flex items-center space-x-2 ${isV2 ? 'font-serif-editorial text-[#242220]' : 'text-white'}`}>
+                <span>Ekatva Foundation Bookstall Inventory Portal</span>
+              </h3>
+              <p className={`text-xs ${isV2 ? 'text-[#5C554E]' : 'text-slate-400'}`}>
+                Books Inventory, MRP/Cost Management, Feature Toggles & Sales Logger
+              </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
             {isAdmin && (
               <button
-                onClick={() => { setIsAdmin(false); setCurrentUser(null); }}
-                className="flex items-center space-x-1 text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 px-3 py-1.5 rounded-xl border border-rose-500/30 font-bold"
+                onClick={() => {
+                  setIsAdmin(false);
+                  setCurrentUser(null);
+                }}
+                className={`flex items-center space-x-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
+                  isV2 ? 'bg-[#EFEBE2] text-rose-700 border-rose-300 hover:bg-rose-100' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                }`}
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span>Logout</span>
+                <span>Log Out</span>
               </button>
             )}
             <button
               onClick={onClose}
-              className={`p-2 rounded-xl transition-colors ${isV2 ? 'bg-[#3D3834] text-[#D4C9BC] hover:text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
+              className={`p-2 rounded-xl border transition-all ${
+                isV2 ? 'bg-[#EFEBE2] text-[#4A443E] border-[#A36B42]/20 hover:bg-[#E5DFD3]' : 'bg-slate-800 text-slate-400 hover:text-white border-slate-700'
+              }`}
             >
               <X className="w-5 h-5" />
             </button>
@@ -372,7 +426,7 @@ export default function AdminDashboard({
                     required
                     value={loginForm.username}
                     onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                    placeholder="Username (e.g. admin or volunteer)"
+                    placeholder="Enter Username"
                     className={`w-full rounded-xl px-4 py-3 text-xs outline-none transition-all ${
                       isV2 
                         ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220] placeholder-[#8C847B] focus:border-[#A36B42]'
@@ -388,24 +442,13 @@ export default function AdminDashboard({
                     required
                     value={loginForm.password}
                     onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                    placeholder="Password"
+                    placeholder="Enter Password"
                     className={`w-full rounded-xl px-4 py-3 text-xs outline-none transition-all ${
                       isV2 
                         ? 'bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220] placeholder-[#8C847B] focus:border-[#A36B42]'
                         : 'bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:border-orange-500'
                     }`}
                   />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-center text-[11px] pt-1">
-                  <div className={`p-2.5 rounded-xl border ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20 text-[#5C554E]' : 'bg-slate-950 border-slate-800 text-slate-300'}`}>
-                    <span className="block font-bold text-[#A36B42]">👑 Admin</span>
-                    <code>admin / admin123</code>
-                  </div>
-                  <div className={`p-2.5 rounded-xl border ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20 text-[#5C554E]' : 'bg-slate-950 border-slate-800 text-slate-300'}`}>
-                    <span className="block font-bold text-blue-600">📱 Volunteer</span>
-                    <code>volunteer / volunteer123</code>
-                  </div>
                 </div>
 
                 <button
@@ -453,6 +496,20 @@ export default function AdminDashboard({
 
                   {userRole === 'Admin' && (
                     <button
+                      onClick={() => setActiveTab('settings')}
+                      className={`flex items-center space-x-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
+                        activeTab === 'settings'
+                          ? isV2 ? 'bg-[#242220] text-white shadow-md' : 'bg-orange-500 text-slate-950 shadow-md'
+                          : isV2 ? 'bg-[#EFEBE2] text-[#5C554E] hover:text-[#242220] border border-[#A36B42]/20' : 'bg-slate-950 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>⚙️ Site Controls & Settings</span>
+                    </button>
+                  )}
+
+                  {userRole === 'Admin' && (
+                    <button
                       onClick={() => setActiveTab('csv')}
                       className={`flex items-center space-x-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                         activeTab === 'csv'
@@ -492,6 +549,233 @@ export default function AdminDashboard({
                   </button>
                 )}
               </div>
+
+              {/* TAB: SITE CONTROLS & SETTINGS */}
+              {activeTab === 'settings' && (
+                <div className="space-y-6">
+                  {settingsSuccess && (
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs p-3.5 rounded-xl font-bold flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 shrink-0" />
+                      <span>{settingsSuccess}</span>
+                    </div>
+                  )}
+
+                  {/* 1. BOOKS CATALOG FEATURE TOGGLE CARD */}
+                  <div className={`p-6 rounded-2xl border space-y-3 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30' : 'bg-slate-950 border-slate-800'}`}>
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      <div>
+                        <h4 className="text-base font-extrabold flex items-center space-x-2">
+                          <BookOpen className="w-5 h-5 text-[#A36B42]" />
+                          <span>Public Books Catalog Feature Control</span>
+                        </h4>
+                        <p className={`text-xs ${isV2 ? 'text-[#5C554E]' : 'text-slate-400'}`}>
+                          Enable or disable the Books Catalog section for public visitors on the website.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center space-x-3">
+                        <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                          localSettings.catalogEnabled
+                            ? 'bg-emerald-500/15 text-emerald-700 border border-emerald-500/30'
+                            : 'bg-amber-500/15 text-amber-700 border border-amber-500/30'
+                        }`}>
+                          {localSettings.catalogEnabled ? '🟢 Catalog ENABLED (Visible to Public)' : '🔴 Catalog DISABLED ("Updating Soon" Notice Active)'}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={handleToggleCatalog}
+                          className={`flex items-center space-x-2 px-4 py-2 rounded-full font-bold text-xs shadow-sm transition-all ${
+                            localSettings.catalogEnabled
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                              : 'bg-amber-600 hover:bg-amber-700 text-white'
+                          }`}
+                        >
+                          {localSettings.catalogEnabled ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
+                          <span>{localSettings.catalogEnabled ? 'Switch Catalog OFF' : 'Switch Catalog ON'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. DYNAMIC CONTACT & SOCIAL MEDIA SETTINGS */}
+                  <form onSubmit={handleSaveSettingsSubmit} className="space-y-6">
+                    <div className={`p-6 rounded-2xl border space-y-4 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30' : 'bg-slate-950 border-slate-800'}`}>
+                      <h4 className="text-sm font-extrabold flex items-center space-x-2">
+                        <Phone className="w-4 h-4 text-[#A36B42]" />
+                        <span>Dynamic Contact Info & Social Media Links</span>
+                      </h4>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <label className="block font-bold mb-1">Phone Number *</label>
+                          <input
+                            type="text"
+                            required
+                            value={localSettings.contactInfo.phone}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              contactInfo: { ...localSettings.contactInfo, phone: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold mb-1">Email Address *</label>
+                          <input
+                            type="email"
+                            required
+                            value={localSettings.contactInfo.email}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              contactInfo: { ...localSettings.contactInfo, email: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block font-bold mb-1">Physical Address / Stall Center</label>
+                          <input
+                            type="text"
+                            value={localSettings.contactInfo.address}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              contactInfo: { ...localSettings.contactInfo, address: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold mb-1">WhatsApp Link / Number</label>
+                          <input
+                            type="text"
+                            value={localSettings.contactInfo.whatsapp}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              contactInfo: { ...localSettings.contactInfo, whatsapp: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold mb-1">Instagram Profile URL</label>
+                          <input
+                            type="text"
+                            value={localSettings.contactInfo.instagram}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              contactInfo: { ...localSettings.contactInfo, instagram: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold mb-1">YouTube Channel URL</label>
+                          <input
+                            type="text"
+                            value={localSettings.contactInfo.youtube}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              contactInfo: { ...localSettings.contactInfo, youtube: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold mb-1">Facebook Page URL</label>
+                          <input
+                            type="text"
+                            value={localSettings.contactInfo.facebook}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              contactInfo: { ...localSettings.contactInfo, facebook: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3. HOME HERO BANNER CONFIG */}
+                    <div className={`p-6 rounded-2xl border space-y-4 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30' : 'bg-slate-950 border-slate-800'}`}>
+                      <h4 className="text-sm font-extrabold flex items-center space-x-2">
+                        <Globe className="w-4 h-4 text-[#A36B42]" />
+                        <span>Dynamic Home Hero Banner Config</span>
+                      </h4>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <label className="block font-bold mb-1">Hero Badge Text</label>
+                          <input
+                            type="text"
+                            value={localSettings.homeBanner.badge}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              homeBanner: { ...localSettings.homeBanner, badge: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold mb-1">Home Banner Image URL</label>
+                          <input
+                            type="text"
+                            value={localSettings.homeBanner.imageUrl}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              homeBanner: { ...localSettings.homeBanner, imageUrl: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block font-bold mb-1">Hero Headline Title</label>
+                          <input
+                            type="text"
+                            value={localSettings.homeBanner.title}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              homeBanner: { ...localSettings.homeBanner, title: e.target.value }
+                            })}
+                            className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block font-bold mb-1">Hero Subtitle</label>
+                          <textarea
+                            rows={2}
+                            value={localSettings.homeBanner.subtitle}
+                            onChange={(e) => setLocalSettings({
+                              ...localSettings,
+                              homeBanner: { ...localSettings.homeBanner, subtitle: e.target.value }
+                            })}
+                            className={`w-full rounded-xl p-2.5 outline-none resize-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900 border-slate-700'}`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={settingsSaving}
+                      className={`w-full font-extrabold text-sm py-3.5 rounded-full shadow-lg transition-all ${
+                        isV2 ? 'bg-[#242220] hover:bg-[#3D3834] text-white' : 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950'
+                      }`}
+                    >
+                      {settingsSaving ? 'Saving Site Settings...' : 'Save All Site Settings & Feature Controls'}
+                    </button>
+                  </form>
+                </div>
+              )}
 
               {/* TAB 1: BOOKS INVENTORY */}
               {activeTab === 'books' && (
@@ -621,7 +905,6 @@ export default function AdminDashboard({
               {/* TAB 2: SALES ENTRY */}
               {activeTab === 'sales' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Form */}
                   <div className={`p-5 rounded-2xl border space-y-4 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/20' : 'bg-slate-950 border-slate-800'}`}>
                     <h4 className={`text-sm font-bold flex items-center space-x-1.5 ${isV2 ? 'text-[#242220]' : 'text-orange-400'}`}>
                       <Calendar className="w-4 h-4 text-[#A36B42]" />
@@ -735,7 +1018,6 @@ export default function AdminDashboard({
                     </form>
                   </div>
 
-                  {/* History */}
                   <div className="lg:col-span-2 space-y-3">
                     <h4 className="text-sm font-bold flex items-center justify-between">
                       <span>Sales Transaction History</span>
@@ -1005,7 +1287,6 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {/* Problem Addressed Input */}
               <div>
                 <label className="block font-bold mb-1">🎯 Problem Addressed Tag *</label>
                 <input
@@ -1118,30 +1399,18 @@ export default function AdminDashboard({
                 </label>
               </div>
 
-              <div className="flex justify-end space-x-2 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowBookModal(false)}
-                  className={`px-4 py-2.5 rounded-full text-xs font-bold ${
-                    isV2 ? 'bg-[#EFEBE2] text-[#5C554E]' : 'bg-slate-800 text-slate-300'
-                  }`}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={`px-5 py-2.5 rounded-full font-extrabold text-xs shadow-md ${
-                    isV2 ? 'bg-[#242220] hover:bg-[#3D3834] text-white' : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950'
-                  }`}
-                >
-                  Save Book Details
-                </button>
-              </div>
+              <button
+                type="submit"
+                className={`w-full font-extrabold text-xs py-3.5 rounded-full shadow-lg mt-3 transition-all ${
+                  isV2 ? 'bg-[#242220] hover:bg-[#3D3834] text-white' : 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950'
+                }`}
+              >
+                {editingBookId ? 'Save Updated Book Details' : 'Add Book to Inventory Database'}
+              </button>
             </form>
           </div>
         </div>
       )}
-
     </div>
   );
 }

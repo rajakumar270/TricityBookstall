@@ -18,6 +18,26 @@ export const api = axios.create({
   },
 });
 
+export const fetchSettingsApi = async () => {
+  try {
+    const res = await api.get('/settings');
+    return res.data;
+  } catch (err) {
+    console.warn('API error fetching settings:', err);
+    return null;
+  }
+};
+
+export const updateSettingsApi = async (settingsData) => {
+  try {
+    const res = await api.put('/settings', settingsData);
+    return res.data;
+  } catch (err) {
+    console.warn('API error updating settings:', err);
+    return null;
+  }
+};
+
 export const fetchBooks = async (mainCategory = '', category = '', search = '', kidsOnly = false) => {
   try {
     const res = await api.get('/books', {
@@ -130,23 +150,6 @@ export const loginAdmin = async (username, password) => {
     const res = await api.post('/auth/login', { username, password });
     return res.data;
   } catch (err) {
-    const u = username.toLowerCase().trim();
-    const p = password.trim();
-
-    if ((u === 'admin' || u === 'ekatva' || u === 'prabodhanam') && p === 'admin123') {
-      return {
-        accessToken: 'token_admin',
-        user: { username: 'admin', role: 'Admin', name: 'Ekatva Foundation Admin' },
-      };
-    }
-
-    if ((u === 'volunteer' || u === 'stall') && (p === 'volunteer123' || p === 'stall123')) {
-      return {
-        accessToken: 'token_volunteer',
-        user: { username: 'volunteer', role: 'Volunteer', name: 'Stall Team Volunteer' },
-      };
-    }
-
-    throw new Error('Invalid credentials. Admin: admin/admin123 | Volunteer: volunteer/volunteer123');
+    throw new Error('Invalid credentials. Please check your username and password.');
   }
 };

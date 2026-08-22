@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, BookOpen, CheckCircle, Info, Sparkles, Layers, Tag, Loader2, ArrowUp } from 'lucide-react';
 
-export default function BooksCatalog({ books, onBookSelect, siteVersion = 'v2' }) {
+export default function BooksCatalog({ books, onBookSelect, siteVersion = 'v2', catalogEnabled = true, onHostStall }) {
   const [selectedMainCat, setSelectedMainCat] = useState('All');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,6 +13,42 @@ export default function BooksCatalog({ books, onBookSelect, siteVersion = 'v2' }
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const isV2 = siteVersion === 'v2';
+
+  if (catalogEnabled === false) {
+    return (
+      <section id="catalog" className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
+        <div className={`p-10 sm:p-12 rounded-3xl border shadow-xl space-y-6 ${
+          isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30 text-[#242220]' : 'glass-panel border-slate-800 text-white'
+        }`}>
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto shadow-md ${
+            isV2 ? 'bg-[#242220] text-[#A36B42]' : 'bg-gradient-to-tr from-orange-500 to-amber-400 text-slate-950'
+          }`}>
+            <BookOpen className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <h3 className={`text-2xl sm:text-4xl font-normal ${isV2 ? 'font-serif-editorial text-[#242220]' : 'font-extrabold text-white'}`}>
+              Books Catalog Updating Soon 📚
+            </h3>
+            <p className={`text-sm sm:text-base max-w-xl mx-auto ${isV2 ? 'text-[#5C554E]' : 'text-slate-400'}`}>
+              We are currently refining and updating our book inventory entries. Please check back shortly or invite a literature bookstall to your campus or institution!
+            </p>
+          </div>
+          {onHostStall && (
+            <div className="pt-2">
+              <button
+                onClick={onHostStall}
+                className={`font-extrabold text-xs px-7 py-3.5 rounded-full shadow-lg transition-all ${
+                  isV2 ? 'bg-[#242220] hover:bg-[#3D3834] text-white hover:scale-105' : 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 hover:scale-105'
+                }`}
+              >
+                Invite Literature Bookstall to Your Campus
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
 
   const mainCategories = ['All', 'Acharya Prashant Foundation', 'Other Author'];
   const categories = ['All', 'Kids Wisdom', 'Mind & Character', 'Self Discovery', 'Vedanta & Classics'];
