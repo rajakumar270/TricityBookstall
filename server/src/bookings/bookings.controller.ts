@@ -6,25 +6,25 @@ export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Get()
-  getAllBookings(): BookingRequest[] {
+  async getAllBookings(): Promise<BookingRequest[]> {
     return this.bookingsService.findAll();
   }
 
   @Get(':id')
-  getBookingById(@Param('id') id: string): BookingRequest {
+  async getBookingById(@Param('id') id: string): Promise<BookingRequest> {
     return this.bookingsService.findOne(id);
   }
 
   @Post()
-  createBooking(@Body() data: Omit<BookingRequest, 'id' | 'status' | 'createdAt'>): BookingRequest {
+  async createBooking(@Body() data: Omit<BookingRequest, 'id' | 'status' | 'createdAt'>): Promise<BookingRequest> {
     return this.bookingsService.create(data);
   }
 
   @Put(':id/status')
-  updateStatus(
+  async updateStatus(
     @Param('id') id: string,
     @Body('status') status: 'Pending' | 'Approved' | 'Completed' | 'Declined'
-  ): BookingRequest {
+  ): Promise<BookingRequest> {
     return this.bookingsService.updateStatus(id, status);
   }
 }

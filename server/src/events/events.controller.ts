@@ -6,7 +6,7 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Get()
-  getAllEvents(): CampusEvent[] {
+  async getAllEvents(): Promise<CampusEvent[]> {
     return this.eventsService.findAll();
   }
 }

@@ -1,26 +1,44 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { DatabaseService } from '../database/mysql.service';
 
 @Injectable()
 export class AuthService {
-  login(username: string, pass: string) {
+  constructor(private readonly db: DatabaseService) {}
+
+  async login(username: string, pass: string) {
     const cleanUser = username.trim().toLowerCase();
     const cleanPass = pass.trim();
 
-    if ((cleanUser === 'admin' || cleanUser === 'ekatva' || cleanUser === 'prabodhanam') && cleanPass === 'admin123') {
-      return {
-        accessToken: 'token_admin_' + Date.now(),
-        user: { username: 'admin', role: 'Admin', name: 'Ekatva Foundation Admin' },
-      };
+    let targetUsername = cleanUser;
+    if (cleanUser === 'ekatva' || cleanUser === 'prabodhanam') {
+      targetUsername = 'admin';
+    } else if (cleanUser === 'stall') {
+      targetUsername = 'volunteer';
     }
 
-    if ((cleanUser === 'volunteer' || cleanUser === 'stall') && (cleanPass === 'volunteer123' || cleanPass === 'stall123')) {
-      return {
-        accessToken: 'token_volunteer_' + Date.now(),
-        user: { username: 'volunteer', role: 'Volunteer', name: 'Stall Team Volunteer' },
-      };
+    const rows = await this.db.query<any[]>(
+      'SELECT * FROM users WHERE (LOWER(username) = ? OR LOWER(username) = ?) AND is_active = 1',
+      [cleanUser, targetUsername],
+    );
+
+    if (rows && rows.length > 0) {
+      const user = rows[0];
+      if (
+        user.password_hash === cleanPass ||
+        (targetUsername === 'admin' && cleanPass === 'admin123') ||
+        (targetUsername === 'volunteer' && (cleanPass === 'volunteer123' || cleanPass === 'stall123'))
+      ) {
+        return {
+          accessToken: `token_${user.role.toLowerCase()}_${Date.now()}`,
+          user: {
+            username: user.username,
+            role: user.role,
+            name: user.full_name,
+          },
+        };
+      }
     }
 
     throw new UnauthorizedException('Invalid credentials. Admin: admin/admin123 | Volunteer: volunteer/volunteer123');
   }
 }
-

@@ -1,7 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import * as fs from 'fs';
-import * as path from 'path';
-import { seedBooksFromCSV } from './books.seed';
+import { DatabaseService } from '../database/mysql.service';
 
 export interface Book {
   id: string;
@@ -23,12 +21,12 @@ export interface Book {
   sellingPrice: number;
   availableStock: number;
   externalLink?: string;
-  problemAddressedTag?: string; // Problem / Theme addressed tag
+  problemAddressedTag?: string;
 }
 
 export interface SalesLogEntry {
   id: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   bookId: string;
   bookTitle: string;
   mainCategory: string;
@@ -43,110 +41,91 @@ export interface SalesLogEntry {
 
 @Injectable()
 export class BooksService {
-  private booksFile = path.resolve(__dirname, '../../data/books.json');
-  private salesLogsFile = path.resolve(__dirname, '../../data/sales_logs.json');
-  private books: Book[] = [];
-  private salesLogs: SalesLogEntry[] = [];
+  constructor(private readonly db: DatabaseService) {}
 
-  constructor() {
-    this.ensureDataDirectory();
-    this.loadBooks();
-    this.loadSalesLogs();
+  private mapRowToBook(row: any): Book {
+    return {
+      id: row.id,
+      title: row.title,
+      hinglishTitle: row.hinglish_title || '',
+      author: row.author,
+      mainCategory: row.main_category,
+      category: row.category,
+      isKidsSection: Boolean(row.is_kids_section),
+      isFeatured: Boolean(row.is_featured),
+      language: row.language,
+      description: row.description || '',
+      coverImage: row.cover_image || '',
+      badge: row.badge || '',
+      readingAge: row.reading_age || '',
+      pages: Number(row.pages) || 0,
+      mrp: Number(row.mrp) || 0,
+      buyingCost: Number(row.buying_cost) || 0,
+      sellingPrice: Number(row.selling_price) || 0,
+      availableStock: Number(row.available_stock) || 0,
+      externalLink: row.external_link || '',
+      problemAddressedTag: row.problem_addressed_tag || '',
+    };
   }
 
-  private ensureDataDirectory() {
-    const dataDir = path.dirname(this.booksFile);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
+  private mapRowToSalesLog(row: any): SalesLogEntry {
+    return {
+      id: row.id,
+      date: row.sale_date ? (row.sale_date instanceof Date ? row.sale_date.toISOString().split('T')[0] : String(row.sale_date)) : '',
+      bookId: row.book_id,
+      bookTitle: row.book_title,
+      mainCategory: row.main_category,
+      quantitySold: Number(row.quantity_sold) || 1,
+      sellingPriceOnDate: Number(row.selling_price_on_date) || 0,
+      totalAmount: Number(row.total_amount) || 0,
+      recordedBy: row.recorded_by || 'Stall Volunteer',
+      location: row.location || 'Tricity Stall',
+      notes: row.notes || '',
+      createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+    };
   }
 
-  private loadBooks() {
-    if (fs.existsSync(this.booksFile)) {
-      try {
-        const fileData = fs.readFileSync(this.booksFile, 'utf-8');
-        this.books = JSON.parse(fileData);
-        if (Array.isArray(this.books) && this.books.length > 0) {
-          return;
-        }
-      } catch (e) {
-        console.error('Error reading books.json, re-seeding...', e);
-      }
-    }
-    // Seed books from CSV / XLSX files
-    this.books = seedBooksFromCSV();
-    this.saveBooksToDisk();
-  }
-
-  private saveBooksToDisk() {
-    try {
-      fs.writeFileSync(this.booksFile, JSON.stringify(this.books, null, 2), 'utf-8');
-    } catch (e) {
-      console.error('Error writing books.json:', e);
-    }
-  }
-
-  private loadSalesLogs() {
-    if (fs.existsSync(this.salesLogsFile)) {
-      try {
-        const fileData = fs.readFileSync(this.salesLogsFile, 'utf-8');
-        this.salesLogs = JSON.parse(fileData);
-      } catch (e) {
-        console.error('Error reading sales_logs.json:', e);
-        this.salesLogs = [];
-      }
-    }
-  }
-
-  private saveSalesLogsToDisk() {
-    try {
-      fs.writeFileSync(this.salesLogsFile, JSON.stringify(this.salesLogs, null, 2), 'utf-8');
-    } catch (e) {
-      console.error('Error writing sales_logs.json:', e);
-    }
-  }
-
-  findAll(mainCategory?: string, category?: string, search?: string, kidsOnly?: boolean): Book[] {
-    let result = this.books;
+  async findAll(mainCategory?: string, category?: string, search?: string, kidsOnly?: boolean): Promise<Book[]> {
+    let sql = 'SELECT * FROM books WHERE 1=1';
+    const params: any[] = [];
 
     if (mainCategory && mainCategory !== 'All') {
-      result = result.filter(b => b.mainCategory === mainCategory);
+      sql += ' AND main_category = ?';
+      params.push(mainCategory);
     }
 
     if (category && category !== 'All') {
-      result = result.filter(b => b.category.toLowerCase() === category.toLowerCase());
+      sql += ' AND LOWER(category) = LOWER(?)';
+      params.push(category);
     }
 
     if (kidsOnly) {
-      result = result.filter(b => b.isKidsSection);
+      sql += ' AND is_kids_section = 1';
     }
 
     if (search && search.trim() !== '') {
-      const q = search.toLowerCase().trim();
-      result = result.filter(
-        b =>
-          b.title.toLowerCase().includes(q) ||
-          (b.hinglishTitle && b.hinglishTitle.toLowerCase().includes(q)) ||
-          b.author.toLowerCase().includes(q) ||
-          (b.description && b.description.toLowerCase().includes(q)) ||
-          (b.problemAddressedTag && b.problemAddressedTag.toLowerCase().includes(q)),
-      );
+      const q = `%${search.toLowerCase().trim()}%`;
+      sql += ' AND (LOWER(title) LIKE ? OR LOWER(hinglish_title) LIKE ? OR LOWER(author) LIKE ? OR LOWER(description) LIKE ? OR LOWER(problem_addressed_tag) LIKE ?)';
+      params.push(q, q, q, q, q);
     }
 
-    return result;
+    sql += ' ORDER BY created_at DESC';
+    const rows = await this.db.query<any[]>(sql, params);
+    return rows.map(r => this.mapRowToBook(r));
   }
 
-  findOne(id: string): Book {
-    const book = this.books.find(b => b.id === id);
-    if (!book) {
+  async findOne(id: string): Promise<Book> {
+    const rows = await this.db.query<any[]>('SELECT * FROM books WHERE id = ?', [id]);
+    if (!rows || rows.length === 0) {
       throw new NotFoundException(`Book with ID "${id}" not found`);
     }
-    return book;
+    return this.mapRowToBook(rows[0]);
   }
 
-  create(bookData: Partial<Book>): Book {
+  async create(bookData: Partial<Book>): Promise<Book> {
+    const id = `b_${Date.now()}`;
     const newBook: Book = {
-      id: `b_${Date.now()}`,
+      id,
       title: bookData.title || 'Untitled Book',
       hinglishTitle: bookData.hinglishTitle || '',
       author: bookData.author || 'Unknown Author',
@@ -159,7 +138,7 @@ export class BooksService {
       coverImage: bookData.coverImage || '',
       badge: bookData.badge || '',
       readingAge: bookData.readingAge || '',
-      pages: bookData.pages || 150,
+      pages: Number(bookData.pages) || 150,
       mrp: Number(bookData.mrp) || 0,
       buyingCost: Number(bookData.buyingCost) || 0,
       sellingPrice: Number(bookData.sellingPrice) || Number(bookData.mrp) || 0,
@@ -168,52 +147,98 @@ export class BooksService {
       problemAddressedTag: bookData.problemAddressedTag || 'Personal Growth & Freedom',
     };
 
-    this.books.unshift(newBook);
-    this.saveBooksToDisk();
+    await this.db.query(
+      `INSERT INTO books (id, title, hinglish_title, author, main_category, category, is_kids_section, is_featured, language, description, cover_image, badge, reading_age, pages, mrp, buying_cost, selling_price, available_stock, external_link, problem_addressed_tag)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        newBook.id,
+        newBook.title,
+        newBook.hinglishTitle,
+        newBook.author,
+        newBook.mainCategory,
+        newBook.category,
+        newBook.isKidsSection ? 1 : 0,
+        newBook.isFeatured ? 1 : 0,
+        newBook.language,
+        newBook.description,
+        newBook.coverImage,
+        newBook.badge,
+        newBook.readingAge,
+        newBook.pages,
+        newBook.mrp,
+        newBook.buyingCost,
+        newBook.sellingPrice,
+        newBook.availableStock,
+        newBook.externalLink,
+        newBook.problemAddressedTag,
+      ],
+    );
+
     return newBook;
   }
 
-  update(id: string, updateData: Partial<Book>): Book {
-    const index = this.books.findIndex(b => b.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Book with ID "${id}" not found`);
-    }
-
-    const updatedBook = {
-      ...this.books[index],
+  async update(id: string, updateData: Partial<Book>): Promise<Book> {
+    const existing = await this.findOne(id);
+    const updatedBook: Book = {
+      ...existing,
       ...updateData,
-      mrp: updateData.mrp !== undefined ? Number(updateData.mrp) : this.books[index].mrp,
-      buyingCost: updateData.buyingCost !== undefined ? Number(updateData.buyingCost) : this.books[index].buyingCost,
-      sellingPrice: updateData.sellingPrice !== undefined ? Number(updateData.sellingPrice) : this.books[index].sellingPrice,
-      availableStock: updateData.availableStock !== undefined ? Number(updateData.availableStock) : this.books[index].availableStock,
+      mrp: updateData.mrp !== undefined ? Number(updateData.mrp) : existing.mrp,
+      buyingCost: updateData.buyingCost !== undefined ? Number(updateData.buyingCost) : existing.buyingCost,
+      sellingPrice: updateData.sellingPrice !== undefined ? Number(updateData.sellingPrice) : existing.sellingPrice,
+      availableStock: updateData.availableStock !== undefined ? Number(updateData.availableStock) : existing.availableStock,
     };
 
-    this.books[index] = updatedBook;
-    this.saveBooksToDisk();
+    await this.db.query(
+      `UPDATE books SET 
+        title = ?, hinglish_title = ?, author = ?, main_category = ?, category = ?, 
+        is_kids_section = ?, is_featured = ?, language = ?, description = ?, cover_image = ?, 
+        badge = ?, reading_age = ?, pages = ?, mrp = ?, buying_cost = ?, selling_price = ?, 
+        available_stock = ?, external_link = ?, problem_addressed_tag = ?
+       WHERE id = ?`,
+      [
+        updatedBook.title,
+        updatedBook.hinglishTitle,
+        updatedBook.author,
+        updatedBook.mainCategory,
+        updatedBook.category,
+        updatedBook.isKidsSection ? 1 : 0,
+        updatedBook.isFeatured ? 1 : 0,
+        updatedBook.language,
+        updatedBook.description,
+        updatedBook.coverImage,
+        updatedBook.badge,
+        updatedBook.readingAge,
+        updatedBook.pages,
+        updatedBook.mrp,
+        updatedBook.buyingCost,
+        updatedBook.sellingPrice,
+        updatedBook.availableStock,
+        updatedBook.externalLink,
+        updatedBook.problemAddressedTag,
+        id,
+      ],
+    );
+
     return updatedBook;
   }
 
-  remove(id: string): { success: boolean } {
-    const index = this.books.findIndex(b => b.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Book with ID "${id}" not found`);
-    }
-    this.books.splice(index, 1);
-    this.saveBooksToDisk();
+  async remove(id: string): Promise<{ success: boolean }> {
+    await this.findOne(id);
+    await this.db.query('DELETE FROM books WHERE id = ?', [id]);
     return { success: true };
   }
 
-  // --- Sales Logging Methods ---
-
-  recordSalesEntry(entryData: Partial<SalesLogEntry>): SalesLogEntry {
-    const book = this.findOne(entryData.bookId);
+  async recordSalesEntry(entryData: Partial<SalesLogEntry>): Promise<SalesLogEntry> {
+    const book = await this.findOne(entryData.bookId!);
     const qty = Math.max(1, Number(entryData.quantitySold) || 1);
     const priceOnDate = Number(entryData.sellingPriceOnDate) || book.sellingPrice || book.mrp || 0;
     const total = qty * priceOnDate;
+    const saleId = `sale_${Date.now()}`;
+    const saleDate = entryData.date || new Date().toISOString().split('T')[0];
 
     const salesEntry: SalesLogEntry = {
-      id: `sale_${Date.now()}`,
-      date: entryData.date || new Date().toISOString().split('T')[0],
+      id: saleId,
+      date: saleDate,
       bookId: book.id,
       bookTitle: book.title,
       mainCategory: book.mainCategory,
@@ -226,19 +251,36 @@ export class BooksService {
       createdAt: new Date().toISOString(),
     };
 
-    // Update book stock & current selling price
-    book.availableStock = Math.max(0, book.availableStock - qty);
-    book.sellingPrice = priceOnDate;
-    this.saveBooksToDisk();
+    await this.db.query(
+      `INSERT INTO sales_logs (id, sale_date, book_id, book_title, main_category, quantity_sold, selling_price_on_date, total_amount, recorded_by, location, notes)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        salesEntry.id,
+        salesEntry.date,
+        salesEntry.bookId,
+        salesEntry.bookTitle,
+        salesEntry.mainCategory,
+        salesEntry.quantitySold,
+        salesEntry.sellingPriceOnDate,
+        salesEntry.totalAmount,
+        salesEntry.recordedBy,
+        salesEntry.location,
+        salesEntry.notes,
+      ],
+    );
 
-    this.salesLogs.unshift(salesEntry);
-    this.saveSalesLogsToDisk();
+    const newStock = Math.max(0, book.availableStock - qty);
+    await this.db.query(
+      'UPDATE books SET available_stock = ?, selling_price = ? WHERE id = ?',
+      [newStock, priceOnDate, book.id],
+    );
 
     return salesEntry;
   }
 
-  getSalesLogs(): SalesLogEntry[] {
-    return this.salesLogs;
+  async getSalesLogs(): Promise<SalesLogEntry[]> {
+    const rows = await this.db.query<any[]>('SELECT * FROM sales_logs ORDER BY created_at DESC');
+    return rows.map(r => this.mapRowToSalesLog(r));
   }
 
   getMainCategories(): string[] {

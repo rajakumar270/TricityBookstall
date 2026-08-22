@@ -6,12 +6,12 @@ export class BooksController {
   constructor(private readonly booksService: BooksService) {}
 
   @Get()
-  getAllBooks(
+  async getAllBooks(
     @Query('mainCategory') mainCategory?: string,
     @Query('category') category?: string,
     @Query('search') search?: string,
     @Query('kidsOnly') kidsOnly?: string
-  ): Book[] {
+  ): Promise<Book[]> {
     const isKids = kidsOnly === 'true';
     return this.booksService.findAll(mainCategory, category, search, isKids);
   }
@@ -27,12 +27,12 @@ export class BooksController {
   }
 
   @Get('sales-logs')
-  getSalesLogs(): SalesLogEntry[] {
+  async getSalesLogs(): Promise<SalesLogEntry[]> {
     return this.booksService.getSalesLogs();
   }
 
   @Post('sales-entry')
-  recordSalesEntry(
+  async recordSalesEntry(
     @Body()
     body: {
       date: string;
@@ -43,27 +43,27 @@ export class BooksController {
       location?: string;
       notes?: string;
     }
-  ): SalesLogEntry {
+  ): Promise<SalesLogEntry> {
     return this.booksService.recordSalesEntry(body);
   }
 
   @Get(':id')
-  getBookById(@Param('id') id: string): Book {
+  async getBookById(@Param('id') id: string): Promise<Book> {
     return this.booksService.findOne(id);
   }
 
   @Post()
-  createBook(@Body() bookData: Omit<Book, 'id'>): Book {
+  async createBook(@Body() bookData: Omit<Book, 'id'>): Promise<Book> {
     return this.booksService.create(bookData);
   }
 
   @Put(':id')
-  updateBook(@Param('id') id: string, @Body() bookData: Partial<Book>): Book {
+  async updateBook(@Param('id') id: string, @Body() bookData: Partial<Book>): Promise<Book> {
     return this.booksService.update(id, bookData);
   }
 
   @Delete(':id')
-  deleteBook(@Param('id') id: string) {
+  async deleteBook(@Param('id') id: string) {
     return this.booksService.remove(id);
   }
 }

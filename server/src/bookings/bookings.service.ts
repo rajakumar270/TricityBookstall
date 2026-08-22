@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { DatabaseService } from '../database/mysql.service';
 
 export interface BookingRequest {
   id: string;
@@ -19,65 +20,77 @@ export interface BookingRequest {
 
 @Injectable()
 export class BookingsService {
-  private bookings: BookingRequest[] = [
-    {
-      id: 'req-1',
-      institutionName: 'Panjab University (Student Center)',
-      institutionType: 'University',
-      contactPerson: 'Harpreet Singh',
-      designation: 'Cultural Secretary',
-      email: 'harpreet.pu@gmail.com',
-      phone: '+91 98765 43210',
-      city: 'Chandigarh',
-      eventLocation: 'Sector 14, Panjab University, Chandigarh',
-      preferredDate: '2026-08-20',
-      estimatedFootfall: '3,000+ Students',
-      additionalNotes: 'Requesting bookstall setup during annual youth fest.',
-      status: 'Approved',
-      createdAt: '2026-07-28',
-    },
-    {
-      id: 'req-2',
-      institutionName: 'Doon Public School',
-      institutionType: 'School',
-      contactPerson: 'Meenakshi Sharma',
-      designation: 'Vice Principal',
-      email: 'meenakshi.doon@gmail.com',
-      phone: '+91 98123 45678',
-      city: 'Panchkula',
-      eventLocation: 'Sector 21, Panchkula',
-      preferredDate: '2026-09-05',
-      estimatedFootfall: '800 Students & Parents',
-      additionalNotes: 'Special request for Kids Wisdom stories and Bal Gita during PTM.',
-      status: 'Pending',
-      createdAt: '2026-07-30',
+  constructor(private readonly db: DatabaseService) {}
+
+  private mapRowToBooking(row: any): BookingRequest {
+    return {
+      id: row.id,
+      institutionName: row.institution_name,
+      institutionType: row.institution_type,
+      contactPerson: row.contact_person,
+      designation: row.designation || '',
+      email: row.email,
+      phone: row.phone,
+      city: row.city,
+      eventLocation: row.event_location,
+      preferredDate: row.preferred_date ? (row.preferred_date instanceof Date ? row.preferred_date.toISOString().split('T')[0] : String(row.preferred_date)) : '',
+      estimatedFootfall: row.estimated_footfall || '',
+      additionalNotes: row.additional_notes || '',
+      status: row.status,
+      createdAt: row.created_at ? (row.created_at instanceof Date ? row.created_at.toISOString().split('T')[0] : String(row.created_at)) : '',
+    };
+  }
+
+  async findAll(): Promise<BookingRequest[]> {
+    const rows = await this.db.query<any[]>('SELECT * FROM stall_requests ORDER BY created_at DESC');
+    return rows.map(r => this.mapRowToBooking(r));
+  }
+
+  async findOne(id: string): Promise<BookingRequest> {
+    const rows = await this.db.query<any[]>('SELECT * FROM stall_requests WHERE id = ?', [id]);
+    if (!rows || rows.length === 0) {
+      throw new NotFoundException(`Booking request ${id} not found`);
     }
-  ];
-
-  findAll(): BookingRequest[] {
-    return this.bookings;
+    return this.mapRowToBooking(rows[0]);
   }
 
-  findOne(id: string): BookingRequest {
-    const b = this.bookings.find(req => req.id === id);
-    if (!b) throw new NotFoundException(`Booking request ${id} not found`);
-    return b;
-  }
-
-  create(data: Omit<BookingRequest, 'id' | 'status' | 'createdAt'>): BookingRequest {
+  async create(data: Omit<BookingRequest, 'id' | 'status' | 'createdAt'>): Promise<BookingRequest> {
+    const id = 'req-' + Date.now();
+    const createdAt = new Date().toISOString().split('T')[0];
     const newBooking: BookingRequest = {
-      id: 'req-' + Date.now(),
+      id,
       ...data,
       status: 'Pending',
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt,
     };
-    this.bookings.unshift(newBooking);
+
+    await this.db.query(
+      `INSERT INTO stall_requests (id, institution_name, institution_type, contact_person, designation, email, phone, city, event_location, preferred_date, estimated_footfall, additional_notes, status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        newBooking.id,
+        newBooking.institutionName,
+        newBooking.institutionType,
+        newBooking.contactPerson,
+        newBooking.designation,
+        newBooking.email,
+        newBooking.phone,
+        newBooking.city,
+        newBooking.eventLocation,
+        newBooking.preferredDate,
+        newBooking.estimatedFootfall,
+        newBooking.additionalNotes || '',
+        newBooking.status,
+        newBooking.createdAt,
+      ],
+    );
+
     return newBooking;
   }
 
-  updateStatus(id: string, status: 'Pending' | 'Approved' | 'Completed' | 'Declined'): BookingRequest {
-    const booking = this.findOne(id);
-    booking.status = status;
-    return booking;
+  async updateStatus(id: string, status: 'Pending' | 'Approved' | 'Completed' | 'Declined'): Promise<BookingRequest> {
+    await this.findOne(id);
+    await this.db.query('UPDATE stall_requests SET status = ? WHERE id = ?', [status, id]);
+    return this.findOne(id);
   }
 }
