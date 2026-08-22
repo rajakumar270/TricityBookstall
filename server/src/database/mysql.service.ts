@@ -6,28 +6,41 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   private pool: mysql.Pool;
 
   async onModuleInit() {
+    const dbUrl = process.env.DATABASE_URL;
     const dbHost = process.env.DB_HOST || 'localhost';
     const dbPort = Number(process.env.DB_PORT) || 3306;
     const dbUser = process.env.DB_USER || 'root';
     const dbPassword = process.env.DB_PASSWORD || '';
     const dbName = process.env.DB_NAME || 'ekatva_bookstall_db';
+    const useSsl = process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production';
 
-    this.pool = mysql.createPool({
-      host: dbHost,
-      port: dbPort,
-      user: dbUser,
-      password: dbPassword,
-      database: dbName,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-      charset: 'utf8mb4',
-    });
-
-    console.log(`🔌 MySQL Connection Pool connected to [${dbHost}:${dbPort}/${dbName}]`);
+    if (dbUrl) {
+      this.pool = mysql.createPool({
+        uri: dbUrl,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        charset: 'utf8mb4',
+        ssl: useSsl ? { rejectUnauthorized: false } : undefined,
+      });
+      console.log(`🔌 MySQL Connection Pool connected using DATABASE_URL`);
+    } else {
+      this.pool = mysql.createPool({
+        host: dbHost,
+        port: dbPort,
+        user: dbUser,
+        password: dbPassword,
+        database: dbName,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        charset: 'utf8mb4',
+        ssl: useSsl && dbHost !== 'localhost' && dbHost !== '127.0.0.1' ? { rejectUnauthorized: false } : undefined,
+      });
+      console.log(`🔌 MySQL Connection Pool connected to [${dbHost}:${dbPort}/${dbName}]`);
+    }
   }
 
-  // Generic query execution method
   async query<T = any>(sql: string, params: any[] = []): Promise<T> {
     try {
       const [results] = await this.pool.execute(sql, params);
@@ -38,7 +51,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // Get raw pool connection if needed
   getPool(): mysql.Pool {
     return this.pool;
   }

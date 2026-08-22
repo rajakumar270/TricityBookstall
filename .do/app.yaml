@@ -1,0 +1,46 @@
+name: tricity-bookstall
+region: blr
+
+# Managed Database (MySQL)
+databases:
+  - engine: MYSQL
+    name: tricity-db
+    version: "8"
+    db_name: ekatva_bookstall_db
+    db_user: root
+
+# Backend NestJS REST API Service
+services:
+  - name: api
+    source_dir: server
+    build_command: npm run build
+    run_command: npm run start:prod
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 5001
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "5001"
+      - key: DATABASE_URL
+        value: ${tricity-db.DATABASE_URL}
+      - key: DB_SSL
+        value: "true"
+      - key: ADMIN_PASSWORD
+        type: SECRET
+        value: "SetYourSecureAdminPasswordHere"
+      - key: VOLUNTEER_PASSWORD
+        type: SECRET
+        value: "SetYourSecureVolunteerPasswordHere"
+
+# Frontend React App (Static Site)
+static_sites:
+  - name: web
+    source_dir: client
+    build_command: npm run build
+    output_dir: dist
+    envs:
+      - key: VITE_API_URL
+        value: ${api.PUBLIC_URL}/api

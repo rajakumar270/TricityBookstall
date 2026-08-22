@@ -1,13 +1,25 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { DatabaseService } from '../database/mysql.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(private readonly db: DatabaseService) {}
 
+  private hashPassword(pass: string): string {
+    return crypto.createHash('sha256').update(pass.trim()).digest('hex');
+  }
+
   async login(username: string, pass: string) {
     const cleanUser = username.trim().toLowerCase();
     const cleanPass = pass.trim();
+
+    if (!cleanUser || !cleanPass) {
+      throw new UnauthorizedException('Invalid username or password');
+    }
+
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const volunteerPassword = process.env.VOLUNTEER_PASSWORD || 'volunteer123';
 
     let targetUsername = cleanUser;
     if (cleanUser === 'ekatva' || cleanUser === 'prabodhanam') {
@@ -23,11 +35,13 @@ export class AuthService {
 
     if (rows && rows.length > 0) {
       const user = rows[0];
-      if (
+      const isPasswordValid =
         user.password_hash === cleanPass ||
-        (targetUsername === 'admin' && cleanPass === 'admin123') ||
-        (targetUsername === 'volunteer' && (cleanPass === 'volunteer123' || cleanPass === 'stall123'))
-      ) {
+        user.password_hash === this.hashPassword(cleanPass) ||
+        (user.role === 'Admin' && cleanPass === adminPassword) ||
+        (user.role === 'Volunteer' && cleanPass === volunteerPassword);
+
+      if (isPasswordValid) {
         return {
           accessToken: `token_${user.role.toLowerCase()}_${Date.now()}`,
           user: {
@@ -39,6 +53,6 @@ export class AuthService {
       }
     }
 
-    throw new UnauthorizedException('Invalid credentials. Admin: admin/admin123 | Volunteer: volunteer/volunteer123');
+    throw new UnauthorizedException('Invalid username or password');
   }
 }
