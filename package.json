@@ -9,6 +9,8 @@
   "scripts": {
     "heroku-prebuild": "cd client && npm install --include=dev && cd ../server && npm install --include=dev",
     "heroku-postbuild": "cd client && npm run build && cd ../server && npm run build",
+    "build": "npm run heroku-postbuild",
+    "test": "npm run heroku-postbuild",
     "start": "cd server && npm run start:prod"
   }
 }
