@@ -15,10 +15,12 @@ const DEFAULT_STATS = [
   { label: 'Dedicated Volunteers', value: '50+', icon: Heart },
 ];
 
-export default function HeroV2({ onExploreBooks, onHostStall, onExploreEvents, siteSettings, cmsBlocks }) {
+export default function HeroV2({ onExploreBooks, onHostStall, onExploreEvents, onOpenDocViewer, siteSettings, cmsBlocks }) {
   const heroCms = cmsBlocks?.hero_section || {};
   const statsCms = cmsBlocks?.impact_stats?.stats || null;
   const homeBanner = siteSettings?.homeBanner || {};
+  const downloadsConfig = siteSettings?.downloadsConfig;
+  const showDownloadsBtn = downloadsConfig ? (downloadsConfig.showCatalogueButton !== false || downloadsConfig.showBrochureButton !== false) : true;
 
   const badgeText = heroCms.badge || homeBanner.badge || 'Clarity of Mind, Freedom of Being • स्पष्ट मन, मुक्त जीवन';
   const titleText = heroCms.title || homeBanner.title || 'Timeless Wisdom. Meaningful Dialogues. Stronger Communities.';
@@ -71,7 +73,7 @@ export default function HeroV2({ onExploreBooks, onHostStall, onExploreEvents, s
             </p>
 
             {/* Buttons Row */}
-            <div className="pt-3 flex items-center space-x-6">
+            <div className="pt-3 flex flex-wrap items-center gap-4 sm:gap-6">
               <button
                 onClick={onHostStall}
                 className="bg-[#242220] hover:bg-[#3D3834] text-white text-xs font-extrabold px-7 py-3.5 rounded-full shadow-lg flex items-center space-x-2 transition-all hover:scale-105 cursor-pointer"
@@ -79,6 +81,16 @@ export default function HeroV2({ onExploreBooks, onHostStall, onExploreEvents, s
                 <span>{heroCms.ctaSecondary || 'Invite a Bookstall'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+
+              {showDownloadsBtn && (
+                <button
+                  onClick={() => onOpenDocViewer && onOpenDocViewer('catalogue')}
+                  className="bg-[#EFEBE2] hover:bg-[#E5DFD3] text-[#242220] border border-[#A36B42]/30 hover:border-[#A36B42] text-xs font-extrabold px-5 py-3.5 rounded-full shadow-sm flex items-center space-x-2 transition-all hover:scale-105 cursor-pointer"
+                >
+                  <BookOpen className="w-4 h-4 text-[#A36B42]" />
+                  <span>Catalogue & Brochure</span>
+                </button>
+              )}
 
               <button
                 onClick={onExploreEvents}

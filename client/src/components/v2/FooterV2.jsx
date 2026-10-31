@@ -1,11 +1,12 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Facebook, Instagram, Youtube } from 'lucide-react';
 
-export default function FooterV2({ setActiveTab, onOpenHostModal, siteSettings }) {
+export default function FooterV2({ setActiveTab, onOpenHostModal, onOpenDocViewer, siteSettings }) {
   const logoTitle = siteSettings?.logoConfig?.title || 'Ekatva Foundation';
   const logoSubtitle = siteSettings?.logoConfig?.subtitle || 'Clarity of Mind • Freedom of Being';
   const logoImg = siteSettings?.logoConfig?.logoUrl || '/assets/ekatva_v3_logo_1.jpg';
   const contact = siteSettings?.contactInfo || {};
+  const downloadsConfig = siteSettings?.downloadsConfig;
 
   return (
     <footer className="bg-[#F7F4EE] border-t border-[#A36B42]/20 pt-14 pb-8 text-[#242220]">
@@ -56,14 +57,33 @@ export default function FooterV2({ setActiveTab, onOpenHostModal, siteSettings }
           {/* Col 2: Quick Links */}
           <div className="md:col-span-3 space-y-3">
             <h4 className="text-[11px] font-bold tracking-[0.2em] text-[#A36B42] uppercase">
-              Quick Links
+              Quick Links & Downloads
             </h4>
             <ul className="space-y-2 text-xs font-semibold text-[#5C554E]">
               <li><button onClick={() => setActiveTab('home')} className="hover:text-[#242220]">About Us</button></li>
               <li><button onClick={() => setActiveTab('books')} className="hover:text-[#242220]">Book Catalog</button></li>
               <li><button onClick={() => setActiveTab('events')} className="hover:text-[#242220]">Campus Events</button></li>
               <li><button onClick={onOpenHostModal} className="hover:text-[#242220]">Invite a Bookstall</button></li>
-              <li><button onClick={() => setActiveTab('kids')} className="hover:text-[#242220]">Kids Wisdom Corner</button></li>
+              {downloadsConfig?.showCatalogueButton !== false && (
+                <li>
+                  <button 
+                    onClick={() => onOpenDocViewer && onOpenDocViewer('catalogue')} 
+                    className="hover:text-[#A36B42] font-bold text-[#242220] flex items-center space-x-1"
+                  >
+                    <span>📖 Book Catalogue (PDF)</span>
+                  </button>
+                </li>
+              )}
+              {downloadsConfig?.showBrochureButton !== false && (
+                <li>
+                  <button 
+                    onClick={() => onOpenDocViewer && onOpenDocViewer('brochure')} 
+                    className="hover:text-[#A36B42] font-bold text-[#242220] flex items-center space-x-1"
+                  >
+                    <span>📜 Campus Brochure (PDF)</span>
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
 

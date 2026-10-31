@@ -1,7 +1,10 @@
 import React from 'react';
 import { Calendar, MapPin, ArrowRight } from 'lucide-react';
 
-export default function EventsV2({ events, onExploreEvents }) {
+export default function EventsV2({ events, onExploreEvents, cmsBlocks }) {
+  const sectionTag = cmsBlocks?.events_header?.sectionTag || 'Past Events';
+  const viewAllText = cmsBlocks?.events_header?.viewAllText || 'View All Events';
+
   const displayEvents = events && events.length > 0 ? events.slice(0, 4) : [
     {
       id: 'ev-1',
@@ -40,7 +43,7 @@ export default function EventsV2({ events, onExploreEvents }) {
       <div className="flex items-center justify-between">
         <div>
           <div className="text-[11px] font-bold tracking-[0.25em] text-[#A36B42] uppercase">
-            Upcoming Events
+            {sectionTag}
           </div>
         </div>
 
@@ -48,7 +51,7 @@ export default function EventsV2({ events, onExploreEvents }) {
           onClick={onExploreEvents}
           className="text-xs font-bold text-[#242220] hover:text-[#A36B42] flex items-center space-x-1 underline decoration-1 underline-offset-4"
         >
-          <span>View All Events</span>
+          <span>{viewAllText}</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>

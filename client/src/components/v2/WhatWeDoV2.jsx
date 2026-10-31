@@ -26,7 +26,7 @@ export default function WhatWeDoV2({ cmsBlocks }) {
 
   return (
     <section id="about" className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-      
+
       {/* Section Subheading / Label */}
       <div className="text-[11px] font-bold tracking-[0.25em] text-[#A36B42] uppercase mb-3">
         {whatWeDo?.sectionTitle || 'What We Do'}
@@ -42,7 +42,7 @@ export default function WhatWeDoV2({ cmsBlocks }) {
         {cards.map((card, idx) => {
           const Icon = ICONS[idx % ICONS.length];
           return (
-            <div 
+            <div
               key={idx}
               className="bg-[#EFEBE2] rounded-3xl p-6 border border-[#A36B42]/20 hover:border-[#A36B42]/50 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex flex-col justify-between"
             >

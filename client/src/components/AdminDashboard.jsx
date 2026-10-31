@@ -179,6 +179,10 @@ export default function AdminDashboard({
       ctaText: 'Invite Now',
       image: '/assets/cgc2.jpg',
     },
+    events_header: {
+      sectionTag: 'Past Events',
+      viewAllText: 'View All Events',
+    },
     footer: {
       tagline: 'Clarity of Mind • Freedom of Being',
       description: 'Bringing timeless wisdom literature to campuses, communities, and youth across the Tri-City region.',
@@ -1945,6 +1949,52 @@ export default function AdminDashboard({
                     </div>
                   </div>
 
+                  {/* Events Section Header Block */}
+                  <div className={`p-6 rounded-3xl border space-y-4 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30' : 'bg-slate-950 border-slate-800'}`}>
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-sm flex items-center space-x-2">
+                        <Calendar className="w-4 h-4 text-[#A36B42]" />
+                        <span>5. Events Section Header (Homepage)</span>
+                      </h4>
+                      <button
+                        onClick={() => handleSaveCmsBlock('events_header', cmsBlocks.events_header)}
+                        disabled={cmsSaving === 'events_header'}
+                        className="bg-[#242220] hover:bg-[#3D3834] text-white text-xs font-bold px-4 py-2 rounded-full shadow"
+                      >
+                        {cmsSaving === 'events_header' ? 'Saving...' : 'Save Events Header'}
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <label className="block font-bold mb-1">Section Tag / Heading</label>
+                        <input
+                          type="text"
+                          value={cmsBlocks.events_header?.sectionTag || ''}
+                          onChange={(e) => setCmsBlocks({
+                            ...cmsBlocks,
+                            events_header: { ...cmsBlocks.events_header, sectionTag: e.target.value }
+                          })}
+                          placeholder="Past Events"
+                          className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900'}`}
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold mb-1">View All Button Text</label>
+                        <input
+                          type="text"
+                          value={cmsBlocks.events_header?.viewAllText || ''}
+                          onChange={(e) => setCmsBlocks({
+                            ...cmsBlocks,
+                            events_header: { ...cmsBlocks.events_header, viewAllText: e.target.value }
+                          })}
+                          placeholder="View All Events"
+                          className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900'}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             )}
@@ -2529,6 +2579,148 @@ export default function AdminDashboard({
                             contactInfo: { ...localSettings.contactInfo, instagram: e.target.value }
                           })}
                           className={`w-full rounded-xl px-3 py-2.5 outline-none ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900'}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 6. CATALOGUE & BROCHURE DOWNLOADS CONFIG CARD */}
+                  <div className={`p-6 rounded-3xl border space-y-4 ${isV2 ? 'bg-[#EFEBE2] border-[#A36B42]/30' : 'bg-slate-950 border-slate-800'}`}>
+                    <h4 className="text-sm font-extrabold flex items-center space-x-2">
+                      <BookOpen className="w-4 h-4 text-[#A36B42]" />
+                      <span>Catalogue & Campus Brochure Download Settings</span>
+                    </h4>
+                    <p className={`text-xs ${isV2 ? 'text-[#5C554E]' : 'text-slate-400'}`}>
+                      Control visibility of Book Catalogue & Campus Brochure download buttons, allow or restrict direct PDF downloading, and set document URLs.
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                      
+                      {/* Toggle: Show Catalogue Button */}
+                      <div className={`p-4 rounded-2xl border flex items-center justify-between ${isV2 ? 'bg-[#F7F4EE] border-[#A36B42]/20' : 'bg-slate-900 border-slate-800'}`}>
+                        <div>
+                          <div className="font-bold text-xs">📖 Book Catalogue</div>
+                          <div className="text-[10px] text-slate-500">Show Catalogue buttons across site</div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={localSettings.downloadsConfig?.showCatalogueButton !== false}
+                          onChange={(e) => setLocalSettings({
+                            ...localSettings,
+                            downloadsConfig: {
+                              ...localSettings.downloadsConfig,
+                              showCatalogueButton: e.target.checked
+                            }
+                          })}
+                          className="w-5 h-5 accent-[#A36B42] cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Toggle: Show Brochure Button */}
+                      <div className={`p-4 rounded-2xl border flex items-center justify-between ${isV2 ? 'bg-[#F7F4EE] border-[#A36B42]/20' : 'bg-slate-900 border-slate-800'}`}>
+                        <div>
+                          <div className="font-bold text-xs">📜 Campus Brochure</div>
+                          <div className="text-[10px] text-slate-500">Show Brochure buttons across site</div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={localSettings.downloadsConfig?.showBrochureButton !== false}
+                          onChange={(e) => setLocalSettings({
+                            ...localSettings,
+                            downloadsConfig: {
+                              ...localSettings.downloadsConfig,
+                              showBrochureButton: e.target.checked
+                            }
+                          })}
+                          className="w-5 h-5 accent-[#A36B42] cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Toggle: Show Direct PDF Download Button */}
+                      <div className={`p-4 rounded-2xl border flex items-center justify-between ${isV2 ? 'bg-[#F7F4EE] border-[#A36B42]/20' : 'bg-slate-900 border-slate-800'}`}>
+                        <div>
+                          <div className="font-bold text-xs">📥 Direct PDF Download</div>
+                          <div className="text-[10px] text-slate-500">Allow users to download PDF file</div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={localSettings.downloadsConfig?.showDirectDownload !== false}
+                          onChange={(e) => setLocalSettings({
+                            ...localSettings,
+                            downloadsConfig: {
+                              ...localSettings.downloadsConfig,
+                              showDirectDownload: e.target.checked
+                            }
+                          })}
+                          className="w-5 h-5 accent-[#A36B42] cursor-pointer"
+                        />
+                      </div>
+
+                    </div>
+
+                    {/* Titles and File URL Inputs */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2">
+                      <div>
+                        <label className="block font-bold mb-1">Book Catalogue Title</label>
+                        <input
+                          type="text"
+                          value={localSettings.downloadsConfig?.catalogueTitle || 'Ekatva Book Catalogue 2026'}
+                          onChange={(e) => setLocalSettings({
+                            ...localSettings,
+                            downloadsConfig: {
+                              ...localSettings.downloadsConfig,
+                              catalogueTitle: e.target.value
+                            }
+                          })}
+                          className={`w-full rounded-xl px-3 py-2.5 outline-none font-bold ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900'}`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold mb-1">Campus Brochure Title</label>
+                        <input
+                          type="text"
+                          value={localSettings.downloadsConfig?.brochureTitle || 'Campus Bookstall Brochure'}
+                          onChange={(e) => setLocalSettings({
+                            ...localSettings,
+                            downloadsConfig: {
+                              ...localSettings.downloadsConfig,
+                              brochureTitle: e.target.value
+                            }
+                          })}
+                          className={`w-full rounded-xl px-3 py-2.5 outline-none font-bold ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900'}`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold mb-1">Catalogue PDF File / Asset URL</label>
+                        <input
+                          type="text"
+                          value={localSettings.downloadsConfig?.catalogueUrl || '/assets/docs/ekatva_book_catalogue.pdf'}
+                          onChange={(e) => setLocalSettings({
+                            ...localSettings,
+                            downloadsConfig: {
+                              ...localSettings.downloadsConfig,
+                              catalogueUrl: e.target.value
+                            }
+                          })}
+                          className={`w-full rounded-xl px-3 py-2.5 outline-none font-mono ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900'}`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold mb-1">Brochure PDF File / Asset URL</label>
+                        <input
+                          type="text"
+                          value={localSettings.downloadsConfig?.brochureUrl || '/assets/docs/ekatva_campus_brochure.pdf'}
+                          onChange={(e) => setLocalSettings({
+                            ...localSettings,
+                            downloadsConfig: {
+                              ...localSettings.downloadsConfig,
+                              brochureUrl: e.target.value
+                            }
+                          })}
+                          className={`w-full rounded-xl px-3 py-2.5 outline-none font-mono ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900'}`}
                         />
                       </div>
                     </div>

@@ -14,8 +14,10 @@ import EventsV2 from './components/v2/EventsV2';
 import QuoteBannerV2 from './components/v2/QuoteBannerV2';
 import InviteBannerV2 from './components/v2/InviteBannerV2';
 import FooterV2 from './components/v2/FooterV2';
+import DownloadsSection from './components/v2/DownloadsSection';
 import PageLoader from './components/v2/PageLoader';
 import TabFallbackLoader from './components/v2/TabFallbackLoader';
+import DocumentViewerModal from './components/DocumentViewerModal';
 
 // Code-split heavy views & Admin dashboard for fast lightweight initial load
 const KidsSection = lazy(() => import('./components/KidsSection'));
@@ -149,9 +151,16 @@ export default function App() {
   const [hostModalOpen, setHostModalOpen] = useState(false);
   const [volunteerModalOpen, setVolunteerModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [docViewerOpen, setDocViewerOpen] = useState(false);
+  const [docType, setDocType] = useState('catalogue'); // 'catalogue' | 'brochure'
   const [selectedBook, setSelectedBook] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState('Admin');
+
+  const handleOpenDocViewer = (type = 'catalogue') => {
+    setDocType(type);
+    setDocViewerOpen(true);
+  };
 
   useEffect(() => {
     // Secret route check for /admin or /portal in URL
@@ -256,6 +265,7 @@ export default function App() {
           setActiveTab={setActiveTab}
           onOpenHostModal={() => setHostModalOpen(true)}
           onOpenAdminModal={() => setAdminModalOpen(true)}
+          onOpenDocViewer={handleOpenDocViewer}
           isAdmin={isAdmin}
           siteVersion={siteVersion}
           setSiteVersion={setSiteVersion}
@@ -270,15 +280,22 @@ export default function App() {
                 onExploreBooks={() => setActiveTab('books')}
                 onHostStall={() => setHostModalOpen(true)}
                 onExploreEvents={() => setActiveTab('events')}
+                onOpenDocViewer={handleOpenDocViewer}
                 siteSettings={siteSettings}
                 cmsBlocks={cmsBlocks}
               />
 
               <WhatWeDoV2 cmsBlocks={cmsBlocks} />
 
+              <DownloadsSection
+                onOpenViewer={handleOpenDocViewer}
+                siteSettings={siteSettings}
+              />
+
               <EventsV2
                 events={events}
                 onExploreEvents={() => setActiveTab('events')}
+                cmsBlocks={cmsBlocks}
               />
 
               <QuoteBannerV2 cmsBlocks={cmsBlocks} siteSettings={siteSettings} />
@@ -344,6 +361,7 @@ export default function App() {
         <FooterV2
           setActiveTab={setActiveTab}
           onOpenHostModal={() => setHostModalOpen(true)}
+          onOpenDocViewer={handleOpenDocViewer}
           siteSettings={siteSettings}
         />
 
@@ -371,6 +389,13 @@ export default function App() {
             setSelectedBook(null);
             setHostModalOpen(true);
           }}
+        />
+
+        <DocumentViewerModal
+          isOpen={docViewerOpen}
+          onClose={() => setDocViewerOpen(false)}
+          initialDoc={docType}
+          siteSettings={siteSettings}
         />
 
       </div>
@@ -520,6 +545,13 @@ export default function App() {
           setSelectedBook(null);
           setHostModalOpen(true);
         }}
+      />
+
+      <DocumentViewerModal
+        isOpen={docViewerOpen}
+        onClose={() => setDocViewerOpen(false)}
+        initialDoc={docType}
+        siteSettings={siteSettings}
       />
 
     </div>

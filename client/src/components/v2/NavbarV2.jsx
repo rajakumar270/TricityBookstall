@@ -6,6 +6,7 @@ export default function NavbarV2({
   setActiveTab,
   onOpenHostModal,
   onOpenAdminModal,
+  onOpenDocViewer,
   isAdmin,
   siteVersion,
   setSiteVersion,
@@ -16,6 +17,8 @@ export default function NavbarV2({
   const logoTitle = siteSettings?.logoConfig?.title || 'Ekatva Foundation';
   const logoSubtitle = siteSettings?.logoConfig?.subtitle || 'Clarity of Mind • Freedom of Being';
   const showVersionToggle = siteSettings?.showVersionToggle === true;
+  const downloadsConfig = siteSettings?.downloadsConfig;
+  const showDownloadsNav = downloadsConfig ? (downloadsConfig.showCatalogueButton !== false || downloadsConfig.showBrochureButton !== false) : true;
 
   const navLinks = [
     { id: 'home', label: 'About Us' },
@@ -98,6 +101,18 @@ export default function NavbarV2({
           {/* Action CTAs */}
           <div className="hidden lg:flex items-center space-x-4">
             
+            {/* Catalogue & Brochure Download/Viewer Launcher */}
+            {showDownloadsNav && (
+              <button
+                onClick={() => onOpenDocViewer && onOpenDocViewer('catalogue')}
+                className="flex items-center space-x-1.5 px-3.5 py-2 rounded-full text-xs font-extrabold bg-[#EFEBE2] text-[#242220] border border-[#A36B42]/30 hover:border-[#A36B42] hover:bg-[#E5DFD3] transition-all cursor-pointer shadow-xs"
+                title="View & Download Book Catalogue and Campus Brochure"
+              >
+                <BookOpen className="w-4 h-4 text-[#A36B42]" />
+                <span>Catalogue & Brochure</span>
+              </button>
+            )}
+
             {/* Optional Version Toggle Badge (Only shown if enabled in Admin Settings) */}
             {showVersionToggle && (
               <button
@@ -121,6 +136,15 @@ export default function NavbarV2({
 
           {/* Mobile Menu Button */}
           <div className="flex lg:hidden items-center space-x-2">
+            {showDownloadsNav && (
+              <button
+                onClick={() => onOpenDocViewer && onOpenDocViewer('catalogue')}
+                className="px-3 py-1.5 rounded-full bg-[#EFEBE2] border border-[#A36B42]/30 text-[#242220] text-xs font-extrabold flex items-center space-x-1"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#A36B42]" />
+                <span>Catalogue</span>
+              </button>
+            )}
             {showVersionToggle && (
               <button
                 onClick={() => setSiteVersion(siteVersion === 'v2' ? 'v1' : 'v2')}
@@ -155,6 +179,18 @@ export default function NavbarV2({
               {link.label}
             </button>
           ))}
+          {showDownloadsNav && (
+            <button
+              onClick={() => {
+                onOpenDocViewer && onOpenDocViewer('catalogue');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-[#A36B42] bg-[#EFEBE2] flex items-center space-x-2"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>View Catalogue & Campus Brochure</span>
+            </button>
+          )}
           <button
             onClick={() => {
               onOpenHostModal();

@@ -37,6 +37,15 @@ export interface SiteSettings {
     title: string;
     description: string;
   };
+  downloadsConfig?: {
+    showCatalogueButton: boolean;
+    showBrochureButton: boolean;
+    showDirectDownload: boolean;
+    catalogueUrl: string;
+    brochureUrl: string;
+    catalogueTitle?: string;
+    brochureTitle?: string;
+  };
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -80,6 +89,15 @@ const DEFAULT_SETTINGS: SiteSettings = {
     title: 'Campus Impact & Bookstall Gallery',
     description: 'Moments of student engagement, book fairs, and PTM bookstalls across Tricity educational institutions.',
   },
+  downloadsConfig: {
+    showCatalogueButton: true,
+    showBrochureButton: true,
+    showDirectDownload: true,
+    catalogueUrl: '/assets/docs/ekatva_book_catalogue.pdf',
+    brochureUrl: '/assets/docs/ekatva_campus_brochure.pdf',
+    catalogueTitle: 'Ekatva Book Catalogue 2026',
+    brochureTitle: 'Campus Bookstall Brochure',
+  },
 };
 
 @Injectable()
@@ -122,6 +140,8 @@ export class SettingsService implements OnModuleInit {
             settings.homeBanner = { ...settings.homeBanner, ...parsed };
           } else if (row.key_name === 'events_config') {
             settings.eventsConfig = { ...settings.eventsConfig, ...parsed };
+          } else if (row.key_name === 'downloads_config') {
+            settings.downloadsConfig = { ...settings.downloadsConfig, ...parsed };
           }
         } catch (e) {
           console.error(`Failed to parse setting JSON for key "${row.key_name}":`, e);
@@ -144,6 +164,7 @@ export class SettingsService implements OnModuleInit {
     if (key === 'contactInfo') keyName = 'contact_info';
     if (key === 'homeBanner') keyName = 'home_banner';
     if (key === 'eventsConfig') keyName = 'events_config';
+    if (key === 'downloadsConfig') keyName = 'downloads_config';
 
     const valueJson = JSON.stringify(value);
 
@@ -178,6 +199,9 @@ export class SettingsService implements OnModuleInit {
     }
     if (settingsData.eventsConfig !== undefined) {
       await this.updateSetting('eventsConfig', settingsData.eventsConfig);
+    }
+    if (settingsData.downloadsConfig !== undefined) {
+      await this.updateSetting('downloadsConfig', settingsData.downloadsConfig);
     }
     return this.getAllSettings();
   }

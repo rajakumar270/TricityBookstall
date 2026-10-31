@@ -47,7 +47,7 @@ const DEFAULT_BLOCKS: Record<string, any> = {
     image: '/assets/cgc2.jpg',
   },
   events_header: {
-    sectionTag: 'Upcoming Events',
+    sectionTag: 'Past Events',
     viewAllText: 'View All Events',
   },
   footer: {
@@ -74,7 +74,7 @@ export class CmsService implements OnModuleInit {
       // Seed defaults for any missing blocks
       for (const [key, content] of Object.entries(DEFAULT_BLOCKS)) {
         const rows = await this.db.query<any[]>(
-          'SELECT block_key FROM cms_blocks WHERE block_key = ?',
+          'SELECT block_key, content_json FROM cms_blocks WHERE block_key = ?',
           [key],
         );
         if (!rows || rows.length === 0) {
@@ -82,6 +82,19 @@ export class CmsService implements OnModuleInit {
             `INSERT INTO cms_blocks (block_key, content_json) VALUES (?, ?)`,
             [key, JSON.stringify(content)],
           );
+        } else if (key === 'events_header') {
+          try {
+            const current = JSON.parse(rows[0].content_json || '{}');
+            if (current.sectionTag === 'Upcoming Events') {
+              current.sectionTag = 'Past Events';
+              await this.db.query(
+                `UPDATE cms_blocks SET content_json = ? WHERE block_key = 'events_header'`,
+                [JSON.stringify(current)],
+              );
+            }
+          } catch (e) {
+            // ignore
+          }
         }
       }
       console.log('✅ CMS content blocks initialized');
@@ -96,7 +109,11 @@ export class CmsService implements OnModuleInit {
       const blocks: Record<string, any> = { ...DEFAULT_BLOCKS };
       for (const row of rows) {
         try {
-          blocks[row.block_key] = JSON.parse(row.content_json);
+          const parsed = JSON.parse(row.content_json);
+          if (row.block_key === 'events_header' && parsed?.sectionTag === 'Upcoming Events') {
+            parsed.sectionTag = 'Past Events';
+          }
+          blocks[row.block_key] = parsed;
         } catch (e) {
           // keep default
         }
