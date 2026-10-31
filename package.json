@@ -2,8 +2,12 @@
   "name": "tricity-bookstall",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
-    "heroku-prebuild": "cd client && npm install && cd ../server && npm install",
+    "heroku-prebuild": "cd client && npm install --include=dev && cd ../server && npm install --include=dev",
     "heroku-postbuild": "cd client && npm run build && cd ../server && npm run build",
     "start": "cd server && npm run start:prod"
   }
