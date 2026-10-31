@@ -61,12 +61,12 @@ export default function NavbarV2({
           >
             <div className="w-12 h-12 rounded-full bg-[#EFEBE2] border border-[#A36B42]/30 flex items-center justify-center p-1 shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
               <img 
-                src={siteSettings?.logoConfig?.logoUrl || '/assets/ekatva_v3_logo_1.jpg'} 
+                src={siteSettings?.logoConfig?.logoUrl || '/assets/new_logo.jpg'} 
                 alt="Ekatva Foundation Logo" 
                 className="w-full h-full object-cover rounded-full"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = '/assets/ekatva_logo_1.jpg';
+                  e.target.src = '/assets/new_logo.jpg';
                 }}
               />
             </div>

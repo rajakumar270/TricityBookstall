@@ -46,8 +46,8 @@ export default function AdminDashboard({
     logoConfig: {
       title: 'Ekatva Foundation',
       subtitle: 'Clarity of Mind • Freedom of Being',
-      logoUrl: '/assets/ekatva_v3_logo_1.jpg',
-      faviconUrl: '/assets/ekatva_logo_1.jpg',
+      logoUrl: '/assets/new_logo.jpg',
+      faviconUrl: '/assets/new_logo.jpg',
     },
     quoteConfig: {
       line1: 'Books open minds.',
@@ -73,7 +73,7 @@ export default function AdminDashboard({
         '/assets/cgc1.jpg',
         '/assets/cgc2.jpg',
         '/assets/cu1.jpg',
-        '/assets/ekatva_v3_logo_1.jpg',
+        '/assets/new_logo.jpg',
       ],
     },
     eventsConfig: {
@@ -2089,10 +2089,10 @@ export default function AdminDashboard({
                         {/* Circular Logo Frame */}
                         <div className="w-14 h-14 rounded-full bg-[#EFEBE2] border-2 border-[#A36B42]/40 p-1 shadow-md overflow-hidden flex items-center justify-center shrink-0">
                           <img
-                            src={localSettings.logoConfig?.logoUrl || '/assets/ekatva_v3_logo_1.jpg'}
+                            src={localSettings.logoConfig?.logoUrl || '/assets/new_logo.jpg'}
                             alt="Current Logo"
                             className="w-full h-full object-cover rounded-full"
-                            onError={(e) => { e.target.src = '/assets/ekatva_logo_1.jpg'; }}
+                            onError={(e) => { e.target.src = '/assets/new_logo.jpg'; }}
                           />
                         </div>
                         {/* Organization Name & Punch Line */}
@@ -2114,13 +2114,13 @@ export default function AdminDashboard({
                         <div className="flex items-center space-x-2">
                           <input
                             type="text"
-                            value={localSettings.logoConfig?.logoUrl || '/assets/ekatva_v3_logo_1.jpg'}
+                            value={localSettings.logoConfig?.logoUrl || '/assets/new_logo.jpg'}
                             onChange={(e) => setLocalSettings({
                               ...localSettings,
                               logoConfig: { ...localSettings.logoConfig, logoUrl: e.target.value }
                             })}
                             className={`flex-1 rounded-xl px-3 py-2.5 outline-none font-mono ${isV2 ? 'bg-[#F7F4EE] border border-[#A36B42]/30' : 'bg-slate-900'}`}
-                            placeholder="/assets/ekatva_v3_logo_1.jpg"
+                            placeholder="/assets/new_logo.jpg"
                           />
                           <button
                             type="button"
@@ -2137,6 +2137,7 @@ export default function AdminDashboard({
                         <span className="block text-[11px] font-bold text-slate-500 mb-1.5">Quick Presets:</span>
                         <div className="flex flex-wrap gap-2">
                           {[
+                            { label: '🌟 New Ekatva Tree Logo', url: '/assets/new_logo.jpg' },
                             { label: 'Ekatva Gold V3 Logo', url: '/assets/ekatva_v3_logo_1.jpg' },
                             { label: 'Ekatva Foundation Logo 1', url: '/assets/ekatva_logo_1.jpg' },
                             { label: 'Ekatva Seal Logo', url: '/assets/cropped-IMG-20260203-WA0031.jpg' },
@@ -2391,6 +2392,7 @@ export default function AdminDashboard({
                       <span className="block text-[11px] font-bold text-slate-500">Quick Add from Uploaded Assets:</span>
                       <div className="flex flex-wrap gap-2">
                         {[
+                          { label: '+ New Ekatva Tree Logo', url: '/assets/new_logo.jpg' },
                           { label: '+ CGC Bookstall 1', url: '/assets/cgc1.jpg' },
                           { label: '+ CGC Bookstall 2', url: '/assets/cgc2.jpg' },
                           { label: '+ Chandigarh University', url: '/assets/cu1.jpg' },

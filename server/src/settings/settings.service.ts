@@ -54,8 +54,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   logoConfig: {
     title: 'Ekatva Foundation',
     subtitle: 'Clarity of Mind • Freedom of Being',
-    logoUrl: '/assets/ekatva_v3_logo_1.jpg',
-    faviconUrl: '/assets/ekatva_logo_1.jpg',
+    logoUrl: '/assets/new_logo.jpg',
+    faviconUrl: '/assets/new_logo.jpg',
   },
   quoteConfig: {
     line1: 'Books open minds.',
@@ -81,7 +81,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
       '/assets/cgc1.jpg',
       '/assets/cgc2.jpg',
       '/assets/cu1.jpg',
-      '/assets/ekatva_v3_logo_1.jpg',
+      '/assets/new_logo.jpg',
     ],
   },
   eventsConfig: {
@@ -113,6 +113,30 @@ export class SettingsService implements OnModuleInit {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         );
       `);
+
+      // Migrate any legacy logo paths in database settings
+      try {
+        const logoRow = await this.db.query<any[]>(
+          "SELECT value_json FROM site_settings WHERE key_name = 'logo_config'",
+        );
+        if (logoRow && logoRow.length > 0) {
+          const parsed = JSON.parse(logoRow[0].value_json);
+          if (
+            parsed.logoUrl === '/assets/ekatva_v3_logo_1.jpg' ||
+            parsed.logoUrl === '/assets/ekatva_logo_1.jpg' ||
+            parsed.faviconUrl === '/assets/ekatva_logo_1.jpg'
+          ) {
+            parsed.logoUrl = '/assets/new_logo.jpg';
+            parsed.faviconUrl = '/assets/new_logo.jpg';
+            await this.db.query(
+              "UPDATE site_settings SET value_json = ? WHERE key_name = 'logo_config'",
+              [JSON.stringify(parsed)],
+            );
+          }
+        }
+      } catch (migrateErr) {
+        console.warn('Site settings logo migration note:', migrateErr);
+      }
     } catch (err) {
       console.warn('Could not auto-create site_settings table:', err);
     }

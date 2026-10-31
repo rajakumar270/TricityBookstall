@@ -4,7 +4,7 @@ import { Mail, Phone, MapPin, Facebook, Instagram, Youtube } from 'lucide-react'
 export default function FooterV2({ setActiveTab, onOpenHostModal, onOpenDocViewer, siteSettings }) {
   const logoTitle = siteSettings?.logoConfig?.title || 'Ekatva Foundation';
   const logoSubtitle = siteSettings?.logoConfig?.subtitle || 'Clarity of Mind • Freedom of Being';
-  const logoImg = siteSettings?.logoConfig?.logoUrl || '/assets/ekatva_v3_logo_1.jpg';
+  const logoImg = siteSettings?.logoConfig?.logoUrl || '/assets/new_logo.jpg';
   const contact = siteSettings?.contactInfo || {};
   const downloadsConfig = siteSettings?.downloadsConfig;
 
@@ -22,7 +22,7 @@ export default function FooterV2({ setActiveTab, onOpenHostModal, onOpenDocViewe
                   src={logoImg}
                   alt={logoTitle}
                   className="w-full h-full object-cover rounded-full"
-                  onError={(e) => { e.target.src = '/assets/ekatva_logo_1.jpg'; }}
+                  onError={(e) => { e.target.src = '/assets/new_logo.jpg'; }}
                 />
               </div>
               <div>

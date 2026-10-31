@@ -34,12 +34,12 @@ export default function Navbar({
           >
             <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-orange-600 via-amber-500 to-yellow-400 p-0.5 shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform duration-300">
               <img 
-                src={siteSettings?.logoConfig?.logoUrl || '/assets/ekatva_v3_logo_1.jpg'} 
+                src={siteSettings?.logoConfig?.logoUrl || '/assets/new_logo.jpg'} 
                 alt="Tricity Bookstall Logo"
                 className="w-full h-full object-cover rounded-[10px]"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = '/assets/ekatva_logo_1.jpg';
+                  e.target.src = '/assets/new_logo.jpg';
                 }}
               />
             </div>

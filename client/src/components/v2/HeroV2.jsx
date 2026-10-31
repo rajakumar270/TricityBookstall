@@ -5,7 +5,7 @@ const DEFAULT_BANNER_IMAGES = [
   '/assets/cgc1.jpg',
   '/assets/cgc2.jpg',
   '/assets/cu1.jpg',
-  '/assets/ekatva_v3_logo_1.jpg',
+  '/assets/new_logo.jpg',
 ];
 
 const DEFAULT_STATS = [

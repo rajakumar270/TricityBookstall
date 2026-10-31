@@ -34,7 +34,7 @@ export class GalleryService implements OnModuleInit {
           { url: '/assets/cgc1.jpg', caption: 'CGC Landran Bookstall Setup', category: 'Campus Events' },
           { url: '/assets/cgc2.jpg', caption: 'Student Engagement at CGC', category: 'Campus Events' },
           { url: '/assets/cu1.jpg', caption: 'Chandigarh University Stall', category: 'Campus Events' },
-          { url: '/assets/ekatva_v3_logo_1.jpg', caption: 'Ekatva Foundation Logo', category: 'Branding' },
+          { url: '/assets/new_logo.jpg', caption: 'Ekatva Foundation Logo', category: 'Branding' },
         ];
         for (let i = 0; i < seeds.length; i++) {
           await this.db.query(
@@ -43,6 +43,11 @@ export class GalleryService implements OnModuleInit {
           );
         }
         console.log('✅ Auto-seeded gallery images');
+      } else {
+        // Migrate any legacy logo path in gallery table
+        await this.db.query(
+          "UPDATE gallery_images SET image_url = '/assets/new_logo.jpg' WHERE image_url = '/assets/ekatva_v3_logo_1.jpg'",
+        );
       }
     } catch (err) {
       console.warn('Gallery table init/seed warning:', err);

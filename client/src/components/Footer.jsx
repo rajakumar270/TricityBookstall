@@ -13,10 +13,10 @@ export default function Footer({ setActiveTab, onOpenHostModal, onOpenVolunteerM
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-xl bg-orange-500 p-0.5 overflow-hidden">
                 <img
-                  src="/assets/ekatva_v3_logo_1.jpg"
+                  src="/assets/new_logo.jpg"
                   alt="Logo"
                   className="w-full h-full object-cover rounded-[10px]"
-                  onError={(e) => { e.target.src = '/assets/ekatva_logo_1.jpg'; }}
+                  onError={(e) => { e.target.src = '/assets/new_logo.jpg'; }}
                 />
               </div>
               <span className="font-extrabold text-xl text-slate-900 dark:text-white">Ekatva Foundation</span>
